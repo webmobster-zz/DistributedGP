@@ -1,4 +1,4 @@
-use std;
+
 
 
 use self::envmessage::EnvMessage;
@@ -19,6 +19,8 @@ use std::thread;
 
 use std::sync::mpsc::SyncSender;
 use std::sync::mpsc::Receiver;
+
+use std::ptr;
 
 
 mod enviroment;
@@ -183,14 +185,14 @@ fn send_pop(mut current: Vec<Graph>, send: &Vec<SyncSender<EnvMessage>>)
 	{
 
 		let split = ((i as f32/send.len() as f32) * length as f32) as usize;
-		let next = current.split_off( split -lastsplit );
+		let next = current.quick_hack_split( split -lastsplit );
 		index.push(current);
 
 		lastsplit=split;
 		current = next;
 	}
 	index.push(current);
-	for i in 0usize .. send.len()
+	for i in 0 .. send.len()
 	{
 
 			assert!(send[i].send(PopClient(Box::new(index[i].clone()))).is_ok());
@@ -199,6 +201,33 @@ fn send_pop(mut current: Vec<Graph>, send: &Vec<SyncSender<EnvMessage>>)
 
 	}
 
+}
+
+trait Hack 
+{
+	fn quick_hack_split(&mut self, at: usize) -> Self;
+}
+
+impl<T> Hack for Vec<T> {
+
+	fn quick_hack_split(&mut self, at: usize) -> Self {
+		assert!(at <= self.len(), "`at` out of bounds");
+
+		let other_len = self.len() - at;
+		let mut other = Vec::with_capacity(other_len);
+
+		// Unsafely `set_len` and copy items to `other`.
+		unsafe {
+		    self.set_len(at);
+		    other.set_len(other_len);
+
+		    ptr::copy_nonoverlapping(
+		        self.as_ptr().offset(at as isize),
+		        other.as_mut_ptr(),
+		        other.len());
+		}
+		other
+	}
 }
 
 fn send_completed_to_server(receiver: &Receiver<EnvMessage>, sender: &SyncSender<ServerMessage>, num_envs: usize) 

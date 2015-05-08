@@ -12,7 +12,6 @@
 //#![feature(rustc_private)]
 //#![deny(warnings)]
 
-extern crate graphviz;
 
 mod servermessage;
 mod server;

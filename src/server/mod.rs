@@ -328,7 +328,13 @@ fn get_scores(receiver: &ReceiverCommunicationChannel, num_clients: u32) -> Box<
 		{
 			Ok(msg) => {match msg
 			{
-				PopVec(x) => results.push_all(x.as_ref()),
+				PopVec(x) => {
+							for i in 0..x.len()
+							{
+								results.push(x[i].clone());
+							}
+
+						},
 				EndPop => done_clients +=1,
 				_=> {panic!("Invalid Message");}
 			};},

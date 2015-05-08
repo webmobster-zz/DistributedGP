@@ -71,7 +71,7 @@ pub fn readfile() -> ProblemDescription
 
 	ProblemDescription{ 
 		clientnum: 1,
- 		popcount: 5000,
+ 		popcount: 50,
 		initial_tree_size: 30,
 
 		parents: false,

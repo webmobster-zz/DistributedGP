@@ -7,6 +7,7 @@ authors = ["Edward Clarke <ec10g11@soton.ac.uk>"]
 [dependencies]
 rand = "0.3.8"
 csv = "0.14.2"
+dot = "0.0.4"
 
 # The development profile, used for `cargo build`
 [profile.dev]

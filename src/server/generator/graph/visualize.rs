@@ -1,9 +1,8 @@
-
+extern crate dot;
 use std::io::Write;
-use std::borrow::IntoCow;
 use super::Graph;
 
-use graphviz as dot;
+//use dot;
 
 type Nd<'a> = (usize);
 type Ed<'a> = &'a (usize, usize,Option<bool>);
@@ -44,18 +43,18 @@ impl<'a> dot::Labeller<'a, Nd<'a>, Ed<'a>> for VizGraph {
         dot::Id::new(format!("N{}", n)).unwrap()
     }
     fn node_label<'b>(&'b self, n: &Nd<'b>) -> dot::LabelText<'b> {
-        dot::LabelText::LabelStr(self.nodes[*n][..].into_cow())
+        dot::LabelText::LabelStr(self.nodes[*n][..].into())
     }
     fn edge_label<'b>(&'b self, e: &Ed<'b>) -> dot::LabelText<'b> {
 	//look at this
 	let &(_,_,boolvar) =*e;
 	if boolvar.is_some()
 	{
-        	dot::LabelText::LabelStr(boolvar.unwrap().to_string().into_cow())
+        	dot::LabelText::LabelStr(boolvar.unwrap().to_string().into())
 	}
 	else
 	{
-		dot::LabelText::LabelStr("".into_cow())
+		dot::LabelText::LabelStr("".into())
 	}
     }
 }
