@@ -4,11 +4,9 @@ name = "gp_project"
 version = "0.0.1"
 authors = ["Edward Clarke <ec10g11@soton.ac.uk>"]
 
-[dependencies.csv]
-git = "https://github.com/webmobster/rust-csv"
-
 [dependencies]
-rand = "0.3.3"
+rand = "0.3.8"
+csv = "0.14.2"
 
 # The development profile, used for `cargo build`
 [profile.dev]
