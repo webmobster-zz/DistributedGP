@@ -144,7 +144,7 @@ fn spawn_env(mut num_env: Option<usize>) -> (Receiver<EnvMessage>, Vec<SyncSende
 		match num_env
 		{
  		  
-		  None => {num_env = Some(std::os::num_cpus())}
+		  None => {num_env = Some(1)}
 		  _ =>{}
 		}
 
