@@ -457,8 +457,8 @@ impl Graph
 
 	pub fn add_parents(&mut self, parent1: Option<Graph>, parent2: Option<Graph>)
 	{
-		if parent1.is_some() {self.parent1 = Some(box parent1.unwrap());}
-		if parent2.is_some() {self.parent2 = Some(box parent2.unwrap());}
+		if parent1.is_some() {self.parent1 = Some(Box::new(parent1.unwrap()));}
+		if parent2.is_some() {self.parent2 = Some(Box::new(parent2.unwrap()));}
 
 	}
 

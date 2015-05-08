@@ -53,7 +53,7 @@ impl Generator
 		    repetitions: u32, selection_type: SelectionType, life: u32) -> Generator
 	{
 		
-		let graph = box Vec::with_capacity(popcount as usize);
+		let graph = Box::new(Vec::with_capacity(popcount as usize));
 
 	
 

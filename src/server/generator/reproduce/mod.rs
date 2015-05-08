@@ -81,7 +81,7 @@ pub fn reproduce(generator: & mut Generator)
 		};
 	
 	*/
-	generator.graph_list=box newpop;
+	generator.graph_list=Box::new(newpop);
 	//intial node
 
 	//println!("{} new graphs", generator.popcount -generator.graph_list.len());

@@ -87,11 +87,11 @@ pub fn readfile() -> ProblemDescription
 		repetitions: 50,
 
 		selection_type: Tournament(2),
-		operator_trait: box() (OperatorStruct::new(
+		operator_trait: Box::new ((OperatorStruct::new(
 
 		operatorpointers,fitness,init,secondary
 
-		)),
+		))),
 		life: 20000
 		}
 }
@@ -302,7 +302,7 @@ impl OperatorTrait for OperatorStruct
    fn clone(&self) -> Box<OperatorTrait + Send>
    {
 
-		box OperatorStruct{
+		Box::new( OperatorStruct{
 			vec:   self.vec.clone(),
 			index: self.index,
 
@@ -312,7 +312,7 @@ impl OperatorTrait for OperatorStruct
 			fitnessfunction: self.fitnessfunction,
 			initfunction: self.initfunction,
 			secondaryfunction: self.secondaryfunction,
-		}
+		})
 
 
    }

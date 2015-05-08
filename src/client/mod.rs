@@ -193,7 +193,7 @@ fn send_pop(mut current: Vec<Graph>, send: &Vec<SyncSender<EnvMessage>>)
 	for i in 0usize .. send.len()
 	{
 
-			assert!(send[i].send(PopClient(box index[i].clone())).is_ok());
+			assert!(send[i].send(PopClient(Box::new(index[i].clone()))).is_ok());
 			assert!(send[i].send(EndPopClient).is_ok());
 
 

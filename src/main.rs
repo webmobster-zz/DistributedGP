@@ -4,12 +4,12 @@
 
 
 
-#![feature(box_syntax)]
-#![feature(os)]
-#![feature(collections)]
-#![feature(into_cow)]
-#![feature(convert)]
-#![feature(rustc_private)]
+//#![feature(box_syntax)]
+//#![feature(os)]
+//#![feature(collections)]
+//#![feature(into_cow)]
+//#![feature(convert)]
+//#![feature(rustc_private)]
 //#![deny(warnings)]
 
 extern crate graphviz;

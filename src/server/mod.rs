@@ -297,7 +297,7 @@ fn send_pop(pop: &Generator, send: &Vec<SenderCommunicationChannel>)
 
 
 
-										assert!(ls.send(PopVec( box() ((*pop.graph_list).clone()))).is_ok()); 
+										assert!(ls.send(PopVec( Box::new((*pop.graph_list).clone()))).is_ok()); 
 										assert!(ls.send(EndPop).is_ok());
 
 									   },
@@ -318,7 +318,7 @@ fn get_scores(receiver: &ReceiverCommunicationChannel, num_clients: u32) -> Box<
 		_ => panic!("unimplmented functionality")
 	};
 
-	let mut results = box Vec::new();
+	let mut results = Box::new (Vec::new());
 
 	let mut done_clients = 0;
 	while done_clients<num_clients
