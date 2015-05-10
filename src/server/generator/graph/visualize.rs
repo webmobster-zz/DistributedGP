@@ -2,7 +2,6 @@ extern crate dot;
 use std::io::Write;
 use super::Graph;
 
-//use dot;
 
 type Nd<'a> = (usize);
 type Ed<'a> = &'a (usize, usize,Option<bool>);
@@ -20,16 +19,6 @@ pub fn render_graph<W:Write>(output: &mut W, graph: &Graph) {
 
     dot::render(&viz_graph, output).unwrap()
 }
-
-/*pub fn render_array<W:Writer>(output: &mut W, graph: &Graph) {
-    
-	
-	
-    let nodes = graph.get_labeled_array();
-    let viz_graph = Graph { nodes: nodes, edges: edges };
-
-    dot::render(&viz_graph, output).unwrap()
-}*/
 
 
 impl<'a> dot::Labeller<'a, Nd<'a>, Ed<'a>> for VizGraph {

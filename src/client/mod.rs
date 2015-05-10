@@ -138,7 +138,6 @@ pub fn init(server_send: SyncSender<ServerMessage>, server_receive: Receiver<Ser
 	}
 }
 
-#[allow(deprecated)]
 fn spawn_env(mut num_env: Option<usize>) -> (Receiver<EnvMessage>, Vec<SyncSender<EnvMessage>>,usize)
 {
 

@@ -2,7 +2,14 @@
 
 name = "gp_project"
 version = "0.0.1"
-authors = ["Edward Clarke <ec10g11@soton.ac.uk>"]
+authors = ["Edward Clarke <webmobster@gmail.com>"]
+description = "Experimental GP project"
+documentation = "http://blank.blank"
+homepage = "https://github.com/webmobster/DistributedGP"
+repository = "https://github.com/webmobster/DistributedGP"
+readme = "README.md"
+keywords = ["GP", "Genetic Programming", "Machine Learning", "ML"]
+license = "Private for now"
 
 [dependencies]
 rand = "0.3.8"
