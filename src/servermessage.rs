@@ -7,9 +7,9 @@ pub enum ServerMessage
 {
 	Start,
 	PopVec(Box<Vec<Graph>>),
-	OperatorTraitClient(Vec<Box<OperatorTrait + Send>>),
+	OperatorTrait(Vec<Box<OperatorTrait + Send>>),
 	
-	RepetitionsClient(u32),
+	Repetitions(u32),
 	EndPop
 
 }

@@ -100,14 +100,9 @@ impl Generator
 		
 		
 	}
-	/*
 
-	pub fn get_converted(&self) -> Option<Vec<ConvertedGraph>>
-	{
-		
-	}*/
 
-	#[allow(dead_code)]
+
 	pub fn get_graph(&self, index: usize) -> Graph
 	{
 		self.graph_list[index].clone()

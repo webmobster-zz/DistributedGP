@@ -3,8 +3,9 @@ extern crate csv;
 
 use self::reader::ProblemDescription;
 use super::servermessage::ServerMessage;
-use super::servermessage::ServerMessage::{Start,EndPop,PopVec, RepetitionsClient, OperatorTraitClient};
-use super::client;
+
+use super::enviroment;
+
 use self::generator::Generator;
 use self::generator::graph::Graph;
 use self::generator::graph::visualize;
@@ -15,6 +16,9 @@ use std::thread;
 
 use std::sync::mpsc::SyncSender;
 use std::sync::mpsc::Receiver;
+
+use std::ptr;
+
 
 
 
@@ -28,23 +32,7 @@ use std::fs;
 pub mod generator;
 mod reader;
 
-#[allow(dead_code)]
-enum SenderCommunicationChannel
-{
-	LocalSender(SyncSender<ServerMessage>),
 
-	HttpSender
-
-
-
-}
-
-#[allow(dead_code)]
-enum ReceiverCommunicationChannel
-{
-	LocalReceiver(Receiver<ServerMessage>),
-	HttpReceiver
-}
 
 pub fn init()
 {
@@ -57,6 +45,7 @@ pub fn init()
 
 	//server: Generate the initial population
 	//popcount, operators,end_operators: Vec<uint>, fitness_function, point_mutate_probability, tree_mutate_probability, crossover_mutate_probability, selection_type)
+	//this needs fixing badly	
 	let mut generator = generator::Generator::init(
 				problem_description.get_popcount(),
 				problem_description.get_tree_size(),
@@ -162,7 +151,9 @@ pub fn init()
 			//Mutate and crossover new GAs
 			generator.reproduce();
 			println!("done with generation");
+			
 
+			//refactor this stuff into an I/O thread
 			match stdin_r.try_recv()
 			{
 				Ok(string)=> { 
@@ -226,19 +217,14 @@ pub fn init()
 }
 
 
-fn wait_or_launch_clients(problem_description: &ProblemDescription) -> (ReceiverCommunicationChannel,Vec<SenderCommunicationChannel>)
+fn wait_or_launch_clients(problem_description: &ProblemDescription) -> (Receiver<ServerMessage>,Vec<SyncSender<ServerMessage>>)
 {
-	//Place holder code, add http later
-
-
-	
-	
 	
 	let (client_tx, server_listener): (SyncSender<ServerMessage>, Receiver<ServerMessage>) = sync_channel(30);
 	
-	let mut transmit_vector: Vec<SenderCommunicationChannel> = Vec::new();
+	let mut transmit_vector: Vec<SyncSender<ServerMessage>> = Vec::new();
 	
-		
+	//number of threads fix?
 	for _ in 0 .. problem_description.get_client_num()
 	{
 		let (server_tx, client_listener): (SyncSender<ServerMessage>, Receiver<ServerMessage>) = sync_channel(20);
@@ -246,77 +232,128 @@ fn wait_or_launch_clients(problem_description: &ProblemDescription) -> (Receiver
 
 			
 		let local_tx = client_tx.clone();
-		thread::spawn( move || { client::init(local_tx,client_listener)});
+		thread::spawn( move || { enviroment::init(local_tx,client_listener)});
 
-		transmit_vector.push(SenderCommunicationChannel::LocalSender(server_tx));
+		transmit_vector.push(server_tx);
 
 	}
 
-	(ReceiverCommunicationChannel::LocalReceiver(server_listener),transmit_vector)
+	(server_listener,transmit_vector)
 
 }
 
-fn start(send: &Vec<SenderCommunicationChannel>)
+fn start(send: &Vec<SyncSender<ServerMessage>>)
 {
 	for i in 0usize .. send.len()
 	{
-		match send[i]
-		{
-			SenderCommunicationChannel::LocalSender(ref ls) => {assert!(ls.send(Start).is_ok());}
-			_=> {panic!("invalid SyncSender");}
-		}
+
+		assert!(send[i].send(ServerMessage::Start).is_ok());
 		
 
 	}
 
 }
 
-fn send_pop(pop: &Generator, send: &Vec<SenderCommunicationChannel>)
+fn send_pop(pop: &Generator, send: &Vec<SyncSender<ServerMessage>>)
 {
 
-	//for i in range(0u,send.len())
-	//{
-		let mut vec_problems = Vec::new();
+	//create a list of problems
+	let mut current= *pop.graph_list.clone();
+	let mut vec_problems = Vec::new();
 
-		for _ in 0..pop.get_repetitions()
+	for _ in 0..pop.get_repetitions()
+	{
+		let mut operator = pop.get_operator_trait();
+		operator.init();
+
+		vec_problems.push(operator);
+
+
+	}	
+
+
+	//split the population up equally amont the size of enviroments
+
+	let mut index: Vec<Vec<Graph>> = Vec::new();
+	let length = current.len();
+	
+	let mut lastsplit =0;
+	for i in 1 .. send.len()
+	{
+
+		let split = ((i as f32/send.len() as f32) * length as f32) as usize;
+		let next = current.quick_hack_split( split -lastsplit );
+		index.push(current);
+
+		lastsplit=split;
+		current = next;
+	}
+	index.push(current);
+
+
+
+			
+
+
+	for i in 0..send.len()
+	{
+
+
+		//hack to clone the list of problems
+		let mut op_trait_clone = Vec::new();
+		for z in 0..vec_problems.len()
 		{
-			let mut operator = pop.get_operator_trait();
-			operator.init();
-
-			vec_problems.push(operator);
-
+			op_trait_clone.push(vec_problems[z].clone());
 
 		}
 
-		match send[0]
-		{
-			SenderCommunicationChannel::LocalSender(ref ls) => {
 
-										assert!(ls.send(OperatorTraitClient(vec_problems)).is_ok());
-										assert!(ls.send(RepetitionsClient(pop.get_repetitions())).is_ok());
+		assert!(send[i].send(ServerMessage::OperatorTrait(op_trait_clone)).is_ok());
+		assert!(send[i].send(ServerMessage::Repetitions(pop.get_repetitions())).is_ok());
 
 
 
-										assert!(ls.send(PopVec( Box::new((*pop.graph_list).clone()))).is_ok()); 
-										assert!(ls.send(EndPop).is_ok());
+		assert!(send[i].send(ServerMessage::PopVec( Box::new(index[i].clone()))).is_ok()); 
+		assert!(send[i].send(ServerMessage::EndPop).is_ok());
 
-									   },
-			_=> {panic!("invalid Sender");}
-		}
-		
 
-	//}
+	}
 	
 
 }
 
-fn get_scores(receiver: &ReceiverCommunicationChannel, num_clients: u32) -> Box<Vec<Graph>>
+
+trait Hack 
 {
-	let receiver = match receiver
-	{
-		&ReceiverCommunicationChannel::LocalReceiver(ref x) => x,
-		_ => panic!("unimplmented functionality")
-	};
+	fn quick_hack_split(&mut self, at: usize) -> Self;
+}
+
+impl<T> Hack for Vec<T> {
+
+	fn quick_hack_split(&mut self, at: usize) -> Self {
+		assert!(at <= self.len(), "`at` out of bounds");
+
+		let other_len = self.len() - at;
+		let mut other = Vec::with_capacity(other_len);
+
+		// Unsafely `set_len` and copy items to `other`.
+		unsafe {
+		    self.set_len(at);
+		    other.set_len(other_len);
+
+		    ptr::copy_nonoverlapping(
+		        self.as_ptr().offset(at as isize),
+		        other.as_mut_ptr(),
+		        other.len());
+		}
+		other
+	}
+}
+
+
+fn get_scores(receiver: &Receiver<ServerMessage>, num_clients: u32) -> Box<Vec<Graph>>
+{
+	
 
 	let mut results = Box::new (Vec::new());
 
@@ -328,14 +365,14 @@ fn get_scores(receiver: &ReceiverCommunicationChannel, num_clients: u32) -> Box<
 		{
 			Ok(msg) => {match msg
 			{
-				PopVec(x) => {
+				ServerMessage::PopVec(x) => {
 							for i in 0..x.len()
 							{
 								results.push(x[i].clone());
 							}
 
 						},
-				EndPop => done_clients +=1,
+				ServerMessage::EndPop => done_clients +=1,
 				_=> {panic!("Invalid Message");}
 			};},
 			Err(_)=> panic!("receive error")
@@ -348,6 +385,8 @@ fn get_scores(receiver: &ReceiverCommunicationChannel, num_clients: u32) -> Box<
 
 }
 
+
+//All of this is IO
 fn save_stats(stats_holder: &mut Vec<Vec<(u32,u32,u32,u32)>>, graphs: &Vec<Graph>)
 {
 

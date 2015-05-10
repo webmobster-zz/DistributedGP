@@ -1,11 +1,9 @@
 
-use super::envmessage::EnvMessage;
-use super::envmessage::EnvMessage::{PopClient, EndPopClient, Startclient,OperatorTraitEnv, RepetitionsEnv};
+use super::servermessage::ServerMessage;
 
-use super::super::server::generator::graph::Graph;
-use std::collections::HashSet;
+use super::server::generator::graph::Graph;
 
-use super::super::server::generator::operator::OperatorTrait;
+use super::server::generator::operator::OperatorTrait;
 
 use std::sync::mpsc::SyncSender;
 use std::sync::mpsc::Receiver;
@@ -13,7 +11,7 @@ use std::sync::mpsc::Receiver;
 
 
 
-pub fn init(send: SyncSender<EnvMessage>, receive: Receiver<EnvMessage>)
+pub fn init(send: SyncSender<ServerMessage>, receive: Receiver<ServerMessage>)
 { 
 
 
@@ -25,7 +23,7 @@ pub fn init(send: SyncSender<EnvMessage>, receive: Receiver<EnvMessage>)
 		{
 			Ok(msg) => {match msg
 			{
-				Startclient => {},
+				ServerMessage::Start => {},
 				_=> {panic!("Invalid Message");}
 			};},
 			Err(_)=> panic!("receive error")
@@ -39,7 +37,7 @@ pub fn init(send: SyncSender<EnvMessage>, receive: Receiver<EnvMessage>)
 		{
 			Ok(msg) => {match msg
 			{
-				OperatorTraitEnv(x) => {op_trait = x},
+				ServerMessage::OperatorTrait(x) => {op_trait = x},
 				_=> {panic!("Invalid Message");}
 			};},
 			Err(_)=> panic!("receive error")
@@ -54,7 +52,7 @@ pub fn init(send: SyncSender<EnvMessage>, receive: Receiver<EnvMessage>)
 		{
 			Ok(msg) => {match msg
 			{
-				RepetitionsEnv(x) => {repetitions = x},
+				ServerMessage::Repetitions(x) => {repetitions = x},
 				_=> {panic!("Invalid Message");}
 			};},
 			Err(_)=> panic!("receive error")
@@ -73,7 +71,7 @@ pub fn init(send: SyncSender<EnvMessage>, receive: Receiver<EnvMessage>)
 		{
 			Ok(msg) => {match msg
 			{
-				PopClient(x) => vec_pops=x,
+				ServerMessage::PopVec(x) => vec_pops=x,
 				_=> {panic!("Invalid Message");}
 			};},
 			Err(_)=> panic!("receive error")
@@ -85,7 +83,7 @@ pub fn init(send: SyncSender<EnvMessage>, receive: Receiver<EnvMessage>)
 		{
 			Ok(msg) => {match msg
 			{
-				EndPopClient => (),
+				ServerMessage::EndPop => (),
 				_=> {panic!("Invalid Message");}
 			};},
 			Err(_)=> panic!("receive error")
@@ -98,9 +96,9 @@ pub fn init(send: SyncSender<EnvMessage>, receive: Receiver<EnvMessage>)
 		// run all populations and send fitnesses 
 		run(&mut vec_pops,op_trait, repetitions);
 
-		assert!(send.send(PopClient(vec_pops)).is_ok());
+		assert!(send.send(ServerMessage::PopVec(vec_pops)).is_ok());
 
-
+		assert!(send.send(ServerMessage::EndPop).is_ok());
 	
 
 		//loop back to beginning
@@ -137,10 +135,13 @@ fn run(pop: &mut Box<Vec<Graph>>, mut op_trait: Vec<Box<OperatorTrait + Send>>,r
 	}
 
 }
+
+
+
 //result, life
+//actual method that iterates over an individual
 fn iterate_over_entity(entity: &Graph,  mut op_list: Vec<Box<OperatorTrait + Send>>, repetitions: u32) -> (u32,bool)
 {
-	let mut set = HashSet::new();
 	let mut dups =0;
 	let mut fitness_life_list: Vec<Option<(u32,u32)>> = Vec::new();
 	
@@ -157,11 +158,6 @@ fn iterate_over_entity(entity: &Graph,  mut op_list: Vec<Box<OperatorTrait + Sen
 
 		}
 
-		if !set.insert(op_trait.get_random())
-		{
-			dups +=1;
-
-		}
 
 		let mut life = entity.life;
 
@@ -227,7 +223,6 @@ fn iterate_over_entity(entity: &Graph,  mut op_list: Vec<Box<OperatorTrait + Sen
 
 
 	}
-	//println!("{} dups 2",dups);
 	op_list[0].secondary(entity.list.len(),&mut fitness_life_list)
 
 

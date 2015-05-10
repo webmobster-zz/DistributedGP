@@ -70,7 +70,7 @@ pub fn readfile() -> ProblemDescription
 	
 
 	ProblemDescription{ 
-		clientnum: 1,
+		clientnum: 4,
  		popcount: 50,
 		initial_tree_size: 30,
 
