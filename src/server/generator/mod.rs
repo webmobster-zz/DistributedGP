@@ -35,7 +35,8 @@ pub struct Generator
 	repetitions: u32,
 
 	selection_type: SelectionType,
-	life: u32
+	life: u32,
+	population_UUID: [u64, ..2]
 
 
 

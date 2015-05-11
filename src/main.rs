@@ -1,16 +1,11 @@
 #![crate_type = "bin"]
 
-#![crate_name = "gp_project"]
+#![crate_name = "distrGP"]
 
 
 
-//#![feature(box_syntax)]
-//#![feature(os)]
-//#![feature(collections)]
-//#![feature(into_cow)]
-//#![feature(convert)]
-//#![feature(rustc_private)]
-//#![deny(warnings)]
+#![deny(missing_docs)]
+#![deny(warnings)]
 
 
 mod servermessage;

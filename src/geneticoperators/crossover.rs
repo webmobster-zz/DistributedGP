@@ -9,27 +9,14 @@ use super::selector;
 use self::rand::distributions::{IndependentSample, Range};
 
 
-pub fn tree_crossover(generator: & mut Generator) -> Graph
+pub fn tree_crossover(selector: &mut Box<SelectorTrait>, pop: &Vec<Graph>) -> Graph
 {
 
-	let selection_type = generator.get_selection_type();
+
 	
-	let mut working_graph_parent_one= match selection_type
-	{
-				Tournament(k) => selector::tournament_selection(generator,k),
-				_ => panic!("unimplemented code")
-	};
+	let mut working_graph_parent_one= selector.select();
+	let working_graph_parent_two= selector.select();
 
-
-	let working_graph_parent_two= match selection_type
-	{
-				Tournament(k) => selector::tournament_selection(generator,k),
-				_ => panic!("unimplemented code")
-	};
-
-
-
-	//println!("before tree crossover: {0:?}, {1:?}",working_graph_parent_one,working_graph_parent_two); 
 	
 
 	//fast but bad
@@ -39,9 +26,9 @@ pub fn tree_crossover(generator: & mut Generator) -> Graph
 	let graph_length_one = Range::new(0, working_graph_parent_one.list.len());
 	let graph_length_two = Range::new(0, working_graph_parent_two.list.len());
 
-	let working_index_one = graph_length_one.ind_sample(&mut rng);
+	let working_index_one = graph_length_one.ind_sample(&mut self.rng);
 
-	let working_index_two = graph_length_two.ind_sample(&mut rng);
+	let working_index_two = graph_length_two.ind_sample(&mut self.rng);
 
 	
 
@@ -52,31 +39,15 @@ pub fn tree_crossover(generator: & mut Generator) -> Graph
 
 	let working_graph=working_graph_parent_one;
 
-	
-
-
-
-	//println!("point tree mutation: {:?}",working_graph); 
 	working_graph
 
 }
-pub fn flat_crossover(generator: & mut Generator) -> Graph
+pub fn flat_crossover(selector: &mut Box<SelectorTrait>, pop: &Vec<Graph>) -> Graph
 {
 
-	let selection_type = generator.get_selection_type();
-	
-	let mut working_graph_parent_one= match selection_type
-	{
-				Tournament(k) => selector::tournament_selection(generator,k),
-				_ => panic!("unimplemented code")
-	};
+	let mut working_graph_parent_one= selector.select();
+	let working_graph_parent_two= selector.select();
 
-
-	let working_graph_parent_two= match selection_type
-	{
-				Tournament(k) => selector::tournament_selection(generator,k),
-				_ => panic!("unimplemented code")
-	};
 
 
 	//println!("before tree crossover: {0:?}, {1:?}",working_graph_parent_one,working_graph_parent_two); 
@@ -89,10 +60,10 @@ pub fn flat_crossover(generator: & mut Generator) -> Graph
 	let graph_length_one = Range::new(0, working_graph_parent_one.list.len());
 	let graph_length_two = Range::new(0, working_graph_parent_two.list.len());
 
-	let working_index_one = graph_length_one.ind_sample(&mut rng);
+	let working_index_one = graph_length_one.ind_sample(&mut self.rng);
 
-	let working_index_three = graph_length_two.ind_sample(&mut rng);
-	let working_index_four = graph_length_two.ind_sample(&mut rng);
+	let working_index_three = graph_length_two.ind_sample(&mut self.rng);
+	let working_index_four = graph_length_two.ind_sample(&mut self.rng);
 	
 
 

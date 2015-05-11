@@ -2,20 +2,12 @@ extern crate rand;
 
 use super::Generator;
 use super::graph::Graph;
-
-
-
-
 use self::rand::Rng;
 
 
-pub mod selector;
-mod mutate;
-mod crossover;
 
-
-//rework this
-pub fn reproduce(generator: & mut Generator)
+//finish this
+pub fn reproduce(selector: &mut Box<SelectorTrait>, pop: &Vec<Graph>, crossmut: ?)
 {
 
 
@@ -23,56 +15,28 @@ pub fn reproduce(generator: & mut Generator)
 
 	let mut weights: Vec<f32> = Vec::new();
 
-	let mut runningtotal = generator.point_mutate_probability;
-	weights.push(runningtotal);
-
-
-	runningtotal = runningtotal + generator.tree_mutate_probability;
-	weights.push(runningtotal);
-
-	runningtotal = runningtotal + generator.crossover_probability;
-	weights.push(runningtotal);
-
-	runningtotal = runningtotal + generator.flat_crossover_probability;
-	weights.push(runningtotal);
-
-	runningtotal = runningtotal + generator.point_remove_probability;
-	weights.push(runningtotal);
-
-	runningtotal = runningtotal + generator.clean_probability;
-	weights.push(runningtotal);
-
-	if runningtotal > 1.0 {panic!("probabilties larger than 1")}
 	let mut newpop: Vec<Graph> = Vec::new();
-
-	
 
 	for _ in 0 .. generator.popcount
 	{
+		let sample = rng.gen::<f32>()
 
-		newpop.push(match rng.gen::<f32>()
-		{	
+		//unchecked for correctness
+		let mut runningtotal = 0.0;
+		for i in 0...crossmut.size()
+		{
+			running_total+=crossmut.get(i).get_probability;
 
-			//looks fine so maybe working
-			sample if sample < weights[0] => mutate::point_mutate(generator),
-			//broken
-			sample if sample < weights[1] => mutate::tree_mutate(generator),
-			//broken
-			sample if sample < weights[2] => crossover::tree_crossover(generator),
-			//looks fine so very maybe working
-			sample if sample < weights[3] => crossover::flat_crossover(generator),
-			//looks fine probably working
-			sample if sample < weights[4] => mutate::point_remove(generator),
-			//broke
-			sample if sample <= weights[5] => mutate::clean(generator),
-			_ => {panic!("probabilties didnt add up to 1");}
-		});
-		
-		
 
+			if sample < newpop[i]
+			{
+				newpop.push(crossmut.get(i).operatate(selector));
+				break;
+			}
+		}
 	}
 
-	generator.graph_list=Box::new(newpop);
+	generator.graph_list=newpop;
 
 
 	if generator.graph_list.len() != generator.popcount as usize

@@ -12,14 +12,8 @@ use self::rand::distributions::{IndependentSample, Range};
 
 pub fn point_mutate(generator: & mut Generator) -> Graph
 {
-
-	let selection_type = generator.get_selection_type();
 	
-	let mut working_graph= match selection_type
-	{
-				Tournament(k) => selector::tournament_selection(generator,k),
-				_ => panic!("unimplemented code")
-	};
+	let mut working_graph= selector.select();
 
 
 	//println!("before tree mutation: {:?}",working_graph); 
@@ -127,7 +121,7 @@ pub fn point_mutate(generator: & mut Generator) -> Graph
 pub fn tree_mutate(generator: & mut Generator) -> Graph
 {
 
-	let selection_type = generator.get_selection_type();
+	let mut working_graph= selector.select();
 	
 	let mut working_graph= match selection_type
 	{
@@ -162,14 +156,8 @@ pub fn tree_mutate(generator: & mut Generator) -> Graph
 
 pub fn point_remove(generator: & mut Generator) -> Graph
 {
-	//println!("rm");
-	let selection_type = generator.get_selection_type();
-	
-	let mut working_graph= match selection_type
-	{
-				Tournament(k) => selector::tournament_selection(generator,k),
-				_ => panic!("unimplemented code")
-	};
+
+	let mut working_graph= selector.select();
 
 
 
@@ -194,15 +182,7 @@ pub fn point_remove(generator: & mut Generator) -> Graph
 
 pub fn clean(generator: & mut Generator) -> Graph
 {
-	//println!("clean");
-	let selection_type = generator.get_selection_type();
-	
-	let mut working_graph= match selection_type
-	{
-				Tournament(k) => selector::tournament_selection(generator,k),
-				_ => panic!("unimplemented code")
-	};
-
+	let mut working_graph= selector.select();
 
 
 	working_graph.clean();

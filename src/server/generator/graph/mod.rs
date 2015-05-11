@@ -25,18 +25,18 @@ pub mod visualize;
 pub struct Graph
 {
 	     pub list: Vec<Node>,
-	     loose_ends: Vec<usize>,
 	     fitness: Option<u32>,
-	     parent1: Option<Box<Graph>>,
-	     parent2: Option<Box<Graph>>,
-	     pub life: u32,
-	     perfect: Option<bool>
+	     life: u32,
+	     perfect: Option<bool>,
+	     UUID: [u64, ..2]
 }
 
 #[derive(Clone,Debug)]
 pub struct Node(   pub Operator, pub isize,pub isize, pub isize);
 
 
+
+//This is probably a bad idea
 impl Eq for Graph
 {
 
