@@ -13,6 +13,8 @@ pub mod selector;
 mod mutate;
 mod crossover;
 
+
+//rework this
 pub fn reproduce(generator: & mut Generator)
 {
 
@@ -69,23 +71,8 @@ pub fn reproduce(generator: & mut Generator)
 		
 
 	}
-	/*match rng.gen::<f32>()
-		{
-			sample if sample < weights[0] => println!("point: {:?}", sample),
-			sample if sample < weights[1] => println!("tree mut: {:?}", sample),
-			sample if sample < weights[2] => println!("tree cross: {:?}", sample),
-			sample if sample < weights[3] => println!("flat cross: {:?}", sample),
-			sample if sample < weights[4] => println!("point rm: {:?}", sample),
-			sample if sample < weights[5] => println!("clean: {:?}", sample),
-			sample => {panic!("probabilties didnt add up to 1");}
-		};
-	
-	*/
-	generator.graph_list=Box::new(newpop);
-	//intial node
 
-	//println!("{} new graphs", generator.popcount -generator.graph_list.len());
-	
+	generator.graph_list=Box::new(newpop);
 
 
 	if generator.graph_list.len() != generator.popcount as usize
@@ -94,12 +81,4 @@ pub fn reproduce(generator: & mut Generator)
 	}
 }
 
-/*pub fn new_graphs()
-{
 
-
-
-
-}
-
-*/

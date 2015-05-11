@@ -10,7 +10,6 @@ pub use self::reproduce::selector::SelectionType;
 pub mod graph;
 pub mod operator;
 mod reproduce;
-mod converter;
 
 //#[derive(Show,Clone)]
 pub struct Generator
@@ -23,8 +22,8 @@ pub struct Generator
 
 	operator_trait: Box<OperatorTrait  + Send>,
 
-	parents:bool,
-	stats: bool,
+
+
 	//mutation probabilaties between 0 and 1
 	point_mutate_probability: f32,
 	tree_mutate_probability: f32,
@@ -48,7 +47,7 @@ pub struct Generator
 impl Generator
 {
 	pub fn init(popcount: u32, initial_tree_size: u32 ,operators: Vec<Operator>, end_operators: Vec<u32>,
-	            operator_trait: Box<OperatorTrait + Send>, parents: bool, stats: bool,
+	            operator_trait: Box<OperatorTrait + Send>,
 		    point_mutate_probability: f32, tree_mutate_probability: f32, crossover_probability: f32,flat_crossover_probability:f32, point_remove_probability: f32, clean_probability: f32,
 		    repetitions: u32, selection_type: SelectionType, life: u32) -> Generator
 	{
@@ -64,8 +63,7 @@ impl Generator
 				operatorpointers : operators, 
 				end_operators: end_operators,
 				operator_trait: operator_trait ,
-				parents: parents,				
-				stats:stats,
+			
 				point_mutate_probability: point_mutate_probability,
 				tree_mutate_probability: tree_mutate_probability,
 				crossover_probability: crossover_probability,
@@ -128,12 +126,6 @@ impl Generator
 		
 	}
 
-	pub fn save_stats(&self) -> bool
-	{
-
-		self.stats
-	}
-
 
 	pub fn get_repetitions(&self) -> u32
 	{
@@ -143,11 +135,6 @@ impl Generator
 
 
 
-	pub fn get_parents(&self) -> bool
-	{
-		self.parents
-		
-	}
 
 	pub fn get_selection_type(&self) -> SelectionType
 	{

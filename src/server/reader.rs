@@ -26,8 +26,6 @@ pub struct ProblemDescription
 	popcount: u32,
 	initial_tree_size: u32,
 
-	parents: bool,
-	stats: bool,
 
 	operatorpointers: Vec<Operator>,
 	point_mutate_probability: f32,
@@ -175,18 +173,6 @@ impl ProblemDescription
 		self.clean_probability
 
 	}
-	pub fn get_parents(&self) -> bool
-	{
-		self.parents
-
-	}
-
-	pub fn get_stats(&self) -> bool
-	{
-		self.stats
-
-	}
-
 
 
 	pub fn get_repetitions(&self) -> u32

@@ -21,14 +21,7 @@ pub fn point_mutate(generator: & mut Generator) -> Graph
 				_ => panic!("unimplemented code")
 	};
 
-	if generator.get_parents()
-	{
 
-		let mut parent1 = working_graph.clone();
-		parent1.remove_parents();
-		working_graph.add_parents(Some(parent1),None);
-
-	}
 	//println!("before tree mutation: {:?}",working_graph); 
 	//fast but bad
 	let mut rng = rand::weak_rng();
@@ -142,14 +135,7 @@ pub fn tree_mutate(generator: & mut Generator) -> Graph
 				_ => panic!("unimplemented code")
 	};
 
-	if generator.get_parents()
-	{
 
-		let mut parent1 = working_graph.clone();
-		parent1.remove_parents();
-		working_graph.add_parents(Some(parent1),None);
-
-	}
 	//println!("before tree mutation: {:?}",working_graph); 
 
 
@@ -185,14 +171,7 @@ pub fn point_remove(generator: & mut Generator) -> Graph
 				_ => panic!("unimplemented code")
 	};
 
-	if generator.get_parents()
-	{
 
-		let mut parent1 = working_graph.clone();
-		parent1.remove_parents();
-		working_graph.add_parents(Some(parent1),None);
-
-	}
 
 	//println!("before tree mutation: {:?}",working_graph); 
 	//fast but bad
@@ -223,14 +202,7 @@ pub fn clean(generator: & mut Generator) -> Graph
 				Tournament(k) => selector::tournament_selection(generator,k),
 				_ => panic!("unimplemented code")
 	};
-	if generator.get_parents()
-	{
 
-		let mut parent1 = working_graph.clone();
-		parent1.remove_parents();
-		working_graph.add_parents(Some(parent1),None);
-
-	}
 
 
 	working_graph.clean();

@@ -28,18 +28,6 @@ pub fn tree_crossover(generator: & mut Generator) -> Graph
 	};
 
 
-	if generator.get_parents()
-	{
-
-		let mut parent1 = working_graph_parent_one.clone();
-		let mut parent2 = working_graph_parent_two.clone();
-
-
-		parent1.remove_parents();
-		parent2.remove_parents();
-		working_graph_parent_one.add_parents(Some(parent1),Some(parent2));
-
-	}
 
 	//println!("before tree crossover: {0:?}, {1:?}",working_graph_parent_one,working_graph_parent_two); 
 	
@@ -90,18 +78,6 @@ pub fn flat_crossover(generator: & mut Generator) -> Graph
 				_ => panic!("unimplemented code")
 	};
 
-	if generator.get_parents()
-	{
-
-		let mut parent1 = working_graph_parent_one.clone();
-		let mut parent2 = working_graph_parent_two.clone();
-
-
-		parent1.remove_parents();
-		parent2.remove_parents();
-		working_graph_parent_one.add_parents(Some(parent1),Some(parent2));
-
-	}
 
 	//println!("before tree crossover: {0:?}, {1:?}",working_graph_parent_one,working_graph_parent_two); 
 	

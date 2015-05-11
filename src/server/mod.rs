@@ -53,9 +53,6 @@ pub fn init()
 				problem_description.get_end_operators(),
 
 				problem_description.get_operator_trait(),
-				
-				problem_description.get_parents(),
-				problem_description.get_stats(),
 
 				problem_description.get_point_mutate_probability(),
 				problem_description.get_tree_mutate_probability(),
@@ -70,8 +67,12 @@ pub fn init()
 				problem_description.get_life()
 				);
 	
+
+
 	println!("created generator");
 	generator.generate_graphs();
+
+
 	println!("generated graphs");
 	
 	
@@ -79,7 +80,7 @@ pub fn init()
 
 		
 	//wait for client to connect OR launch local client threads
-	let (receive, send) = wait_or_launch_clients(&problem_description);
+	let (receive, send) = launch_enviroments(problem_description.get_client_num());
 	println!("launched clients");
 
 	let numclients = send.len() as u32;
@@ -93,6 +94,18 @@ pub fn init()
 		send_pop(&generator, &send);
 
 
+		//request scores from enviroments
+		let updated_pop = get_scores(&receive,numclients);
+
+
+			
+			
+
+		generator.set_graphs(updated_pop);
+
+		let mut graphs = (*generator.graph_list).clone();
+		graphs.sort();
+		generator.reproduce();
 
 	
 
@@ -110,8 +123,42 @@ pub fn init()
 
 }
 
+fn get_scores(receiver: &Receiver<ServerMessage>, num_clients: u32) -> Box<Vec<Graph>>
+{
+	
 
-fn wait_or_launch_clients(problem_description: &ProblemDescription) -> (Receiver<ServerMessage>,Vec<SyncSender<ServerMessage>>)
+	let mut results = Box::new (Vec::new());
+
+	let mut done_clients = 0;
+	while done_clients<num_clients
+	{	
+
+		match receiver.recv()
+		{
+			Ok(msg) => {match msg
+			{
+				ServerMessage::PopVec(x) => {
+							for i in 0..x.len()
+							{
+								results.push(x[i].clone());
+							}
+
+						},
+				ServerMessage::EndPop => done_clients +=1,
+				_=> {panic!("Invalid Message");}
+			};},
+			Err(_)=> panic!("receive error")
+		}
+
+
+	}
+	results
+
+
+}
+
+
+fn launch_enviroments(enviroment_number: u32) -> (Receiver<ServerMessage>,Vec<SyncSender<ServerMessage>>)
 {
 	
 	let (client_tx, server_listener): (SyncSender<ServerMessage>, Receiver<ServerMessage>) = sync_channel(30);
@@ -119,7 +166,7 @@ fn wait_or_launch_clients(problem_description: &ProblemDescription) -> (Receiver
 	let mut transmit_vector: Vec<SyncSender<ServerMessage>> = Vec::new();
 	
 	//number of threads fix?
-	for _ in 0 .. problem_description.get_client_num()
+	for _ in 0 .. enviroment_number
 	{
 		let (server_tx, client_listener): (SyncSender<ServerMessage>, Receiver<ServerMessage>) = sync_channel(20);
 			
@@ -148,6 +195,8 @@ fn start(send: &Vec<SyncSender<ServerMessage>>)
 
 }
 
+
+//maybe get rid of the &generator
 fn send_pop(pop: &Generator, send: &Vec<SyncSender<ServerMessage>>)
 {
 
