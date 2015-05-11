@@ -1,13 +1,15 @@
 extern crate rand;
+//extern crate libc;
+
+
 use super::generator::operator::Operator;
 
 use super::generator::operator::OperatorTrait;
 
 use std::collections::HashSet;
 use super::generator::SelectionType;
-use super::generator::SelectionType::{Tournament};
 
-#[allow(unused_imports)]
+
 use self::rand::distributions::{IndependentSample, Range};
 use self::rand::Rng;
 
@@ -70,13 +72,17 @@ pub fn readfile() -> ProblemDescription
 	
 
 	ProblemDescription{ 
-		clientnum: 4,
+		//keep
+		clientnum: num_cpus() as u32,
  		popcount: 50,
 		initial_tree_size: 30,
 
-		parents: false,
-		stats: true,
 		operatorpointers: operatorindex,
+		repetitions: 50,
+		selection_type: SelectionType::Tournament(2),
+		life: 20000,
+
+		//sort out
 		point_mutate_probability: 0.1,
 		tree_mutate_probability: 0.01,
 		crossover_probability: 0.8,
@@ -84,18 +90,17 @@ pub fn readfile() -> ProblemDescription
 		point_remove_probability: 0.001,
 		clean_probability: 0.088,
 
-		repetitions: 50,
 
-		selection_type: Tournament(2),
+
+		
 		operator_trait: Box::new ((OperatorStruct::new(
 
 		operatorpointers,fitness,init,secondary
 
-		))),
-		life: 20000
+		)))
+
 		}
 }
-
 
 impl ProblemDescription
 {
@@ -470,6 +475,17 @@ pub fn secondary(fitness_life_list: &mut Vec<Option<(u32, u32)>>, length: usize)
 
 
 	(fitness + (length as f32 * 0.1) as u32,perfect)
+}
+
+
+pub fn num_cpus() -> usize {
+    unsafe {
+        return rust_get_num_cpus() as usize;
+    }
+
+    extern {
+        fn rust_get_num_cpus() -> u64;
+    }
 }
 
 
