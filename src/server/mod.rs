@@ -54,16 +54,10 @@ pub fn init()
 
 				problem_description.get_operator_trait(),
 
-				problem_description.get_point_mutate_probability(),
-				problem_description.get_tree_mutate_probability(),
-				problem_description.get_crossover_probability(),
-				problem_description.get_flat_crossover_probability(),
-				problem_description.get_point_remove_probability(),
-				problem_description.get_clean_probability(),
 
 				problem_description.get_repetitions(),
 
-				problem_description.get_selection_type(),
+				problem_description.get_selector(),
 				problem_description.get_life()
 				);
 	
@@ -103,7 +97,7 @@ pub fn init()
 
 		generator.set_graphs(updated_pop);
 
-		let mut graphs = (*generator.graph_list).clone();
+		let mut graphs = (generator.graph_list).clone();
 		graphs.sort();
 		generator.reproduce();
 
@@ -123,11 +117,11 @@ pub fn init()
 
 }
 
-fn get_scores(receiver: &Receiver<ServerMessage>, num_clients: u32) -> Box<Vec<Graph>>
+fn get_scores(receiver: &Receiver<ServerMessage>, num_clients: u32) -> Vec<Graph>
 {
 	
 
-	let mut results = Box::new (Vec::new());
+	let mut results = Vec::new();
 
 	let mut done_clients = 0;
 	while done_clients<num_clients
@@ -201,7 +195,7 @@ fn send_pop(pop: &Generator, send: &Vec<SyncSender<ServerMessage>>)
 {
 
 	//create a list of problems
-	let mut current= *pop.graph_list.clone();
+	let mut current= pop.graph_list.clone();
 	let mut vec_problems = Vec::new();
 
 	for _ in 0..pop.get_repetitions()
@@ -225,7 +219,7 @@ fn send_pop(pop: &Generator, send: &Vec<SyncSender<ServerMessage>>)
 	{
 
 		let split = ((i as f32/send.len() as f32) * length as f32) as usize;
-		let next = current.quick_hack_split( split -lastsplit );
+		let next: Vec<Graph> = current.quick_hack_split( split -lastsplit );
 		index.push(current);
 
 		lastsplit=split;
@@ -256,7 +250,7 @@ fn send_pop(pop: &Generator, send: &Vec<SyncSender<ServerMessage>>)
 
 
 
-		assert!(send[i].send(ServerMessage::PopVec( Box::new(index[i].clone()))).is_ok()); 
+		assert!(send[i].send(ServerMessage::PopVec( index[i].clone())).is_ok()); 
 		assert!(send[i].send(ServerMessage::EndPop).is_ok());
 
 

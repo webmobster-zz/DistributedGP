@@ -1,6 +1,6 @@
 [package]
 
-name = "gp_project"
+name = "distrGP"
 version = "0.0.1"
 authors = ["Edward Clarke <webmobster@gmail.com>"]
 description = "Experimental GP project"

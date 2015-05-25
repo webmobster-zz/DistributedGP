@@ -1,13 +1,16 @@
 extern crate rand;
 
 use super::Generator;
-use super::graph::Graph;
+use super::Graph;
+use super::GeneticOperator;
+use super::selectortrait::Selector;
+
 use self::rand::Rng;
 
 
 
 //finish this
-pub fn reproduce(selector: &mut Box<SelectorTrait>, pop: &Vec<Graph>, crossmut: ?)
+pub fn reproduce(selector: &Box<Selector>, pop: &mut Vec<Graph>, crossmut: Vec<Box<GeneticOperator>>)
 {
 
 
@@ -17,32 +20,35 @@ pub fn reproduce(selector: &mut Box<SelectorTrait>, pop: &Vec<Graph>, crossmut: 
 
 	let mut newpop: Vec<Graph> = Vec::new();
 
-	for _ in 0 .. generator.popcount
+	for _ in 0 .. pop.len()
 	{
-		let sample = rng.gen::<f32>()
+		let sample = rng.gen::<f32>();
 
 		//unchecked for correctness
-		let mut runningtotal = 0.0;
-		for i in 0...crossmut.size()
+		let mut running_total = 0.0;
+
+		for i in 0..crossmut.len()
 		{
-			running_total+=crossmut.get(i).get_probability;
+			running_total+=crossmut[i].get_probability();
 
 
-			if sample < newpop[i]
+			if sample < running_total
 			{
-				newpop.push(crossmut.get(i).operatate(selector));
+				newpop.push_all(&*crossmut[i].operate(pop,selector));
 				break;
 			}
 		}
 	}
 
-	generator.graph_list=newpop;
+	
 
 
-	if generator.graph_list.len() != generator.popcount as usize
+	if pop.len() != newpop.len()
 	{
 		panic!("wrong number of graphs")
 	}
+
+	*pop=newpop;
 }
 
 

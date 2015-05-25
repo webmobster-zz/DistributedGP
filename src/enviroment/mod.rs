@@ -110,7 +110,7 @@ pub fn init(send: SyncSender<ServerMessage>, receive: Receiver<ServerMessage>)
 	
 }
 #[allow(unused_mut)]
-fn run(pop: &mut Box<Vec<Graph>>, mut op_trait: Vec<Box<OperatorTrait + Send>>,repetitions: u32)
+fn run(pop: &mut Vec<Graph>, mut op_trait: Vec<Box<OperatorTrait + Send>>,repetitions: u32)
 {
 
 

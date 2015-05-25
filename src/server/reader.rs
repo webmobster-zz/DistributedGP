@@ -1,13 +1,13 @@
 extern crate rand;
-//extern crate libc;
 
 
 use super::generator::operator::Operator;
 
+use super::generator::selectortrait::Selector;
+
 use super::generator::operator::OperatorTrait;
 
 use std::collections::HashSet;
-use super::generator::SelectionType;
 
 
 use self::rand::distributions::{IndependentSample, Range};
@@ -38,7 +38,7 @@ pub struct ProblemDescription
 	repetitions: u32,
 
 
-	selection_type: SelectionType,
+	selector: Box<Selector>,
 
 	operator_trait: Box<OperatorTrait  + Send>,
 
@@ -77,7 +77,7 @@ pub fn readfile() -> ProblemDescription
 
 		operatorpointers: operatorindex,
 		repetitions: 50,
-		selection_type: SelectionType::Tournament(2),
+		selector: 3,
 		life: 20000,
 
 		//sort out
@@ -180,9 +180,9 @@ impl ProblemDescription
 		self.repetitions
 	}
 
-	pub fn get_selection_type(&self) -> SelectionType
+	pub fn get_selector(&self) -> Box<Selector>
 	{
-		self.selection_type.clone()
+		self.selector.clone()
 
 	}
 	pub fn get_tree_size(&self) -> u32

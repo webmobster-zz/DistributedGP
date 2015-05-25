@@ -1,21 +1,24 @@
 
 pub use self::graph::Graph;
+pub use self::geneticoperator::GeneticOperator;
+pub use self::selectortrait::Selector;
+
 use self::operator::Operator;
 use self::operator::OperatorTrait;
-pub use self::reproduce::selector::SelectionType;
-
-
 
 
 pub mod graph;
 pub mod operator;
+mod selectortrait;
 mod reproduce;
+
+mod geneticoperator;
 
 //#[derive(Show,Clone)]
 pub struct Generator
 {
 	popcount: u32,
-	pub graph_list: Box<Vec< Graph>>,
+	graph_list: Vec< Graph>,
 	initial_tree_size: u32,
 	operatorpointers: Vec<Operator>,
 	end_operators: Vec<u32>,
@@ -23,20 +26,11 @@ pub struct Generator
 	operator_trait: Box<OperatorTrait  + Send>,
 
 
-
-	//mutation probabilaties between 0 and 1
-	point_mutate_probability: f32,
-	tree_mutate_probability: f32,
-	crossover_probability: f32,
-	flat_crossover_probability: f32,
-	point_remove_probability: f32,
-	clean_probability: f32,
-
 	repetitions: u32,
 
-	selection_type: SelectionType,
+	selector: Box<selectortrait::Selector>,
 	life: u32,
-	population_UUID: [u64, ..2]
+	population_UUID: [u64; 2]
 
 
 
@@ -48,9 +42,7 @@ pub struct Generator
 impl Generator
 {
 	pub fn init(popcount: u32, initial_tree_size: u32 ,operators: Vec<Operator>, end_operators: Vec<u32>,
-	            operator_trait: Box<OperatorTrait + Send>,
-		    point_mutate_probability: f32, tree_mutate_probability: f32, crossover_probability: f32,flat_crossover_probability:f32, point_remove_probability: f32, clean_probability: f32,
-		    repetitions: u32, selection_type: SelectionType, life: u32) -> Generator
+	            operator_trait: Box<OperatorTrait + Send>, repetitions: u32, selector: Box<Selector>, life: u32) -> Generator
 	{
 		
 		let graph = Box::new(Vec::with_capacity(popcount as usize));
@@ -64,16 +56,9 @@ impl Generator
 				operatorpointers : operators, 
 				end_operators: end_operators,
 				operator_trait: operator_trait ,
-			
-				point_mutate_probability: point_mutate_probability,
-				tree_mutate_probability: tree_mutate_probability,
-				crossover_probability: crossover_probability,
-				flat_crossover_probability: flat_crossover_probability,
-				point_remove_probability: point_remove_probability,
-				clean_probability: clean_probability,
 
 				repetitions: repetitions,
-				selection_type: selection_type,
+				selector: selector,
 				life: life
 			  }
 	
@@ -109,7 +94,7 @@ impl Generator
 	}
 
 		
-	pub fn set_graphs(&mut self, graphs: Box<Vec< Graph>>)
+	pub fn set_graphs(&mut self, graphs: Vec< Graph>)
 	{
 
 		self.graph_list=graphs;
@@ -137,9 +122,9 @@ impl Generator
 
 
 
-	pub fn get_selection_type(&self) -> SelectionType
+	pub fn get_selector(&self) -> Box<selectortrait::Selector>
 	{
-		self.selection_type.clone()
+		self.selector.clone()
 		
 	}
 

@@ -6,7 +6,7 @@ use super::server::generator::operator::OperatorTrait;
 pub enum ServerMessage
 {
 	Start,
-	PopVec(Box<Vec<Graph>>),
+	PopVec(Vec<Graph>),
 	OperatorTrait(Vec<Box<OperatorTrait + Send>>),
 	
 	Repetitions(u32),
