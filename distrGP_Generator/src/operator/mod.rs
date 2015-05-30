@@ -2,7 +2,9 @@ use std::fmt;
 
 pub struct Operator {
     fptr_index: usize,
-    sucessors: u8,
+
+    //fix
+    pub sucessors: u8,
 
 }
 

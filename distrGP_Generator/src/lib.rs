@@ -1,10 +1,19 @@
 
+
+
+
+
+extern crate rand;
+
+
 pub use self::graph::Graph;
 pub use self::geneticoperator::GeneticOperator;
 pub use self::selectortrait::Selector;
 
-use self::operator::Operator;
-use self::operator::OperatorTrait;
+pub use self::operator::Operator;
+pub use self::operator::OperatorTrait;
+
+use self::rand::Rng;
 
 
 pub mod graph;
@@ -18,13 +27,12 @@ mod geneticoperator;
 pub struct Generator
 {
 	popcount: u32,
-	graph_list: Vec< Graph>,
-	initial_tree_size: u32,
+	pub graph_list: Vec< Graph>,
 	operatorpointers: Vec<Operator>,
 	end_operators: Vec<u32>,
 
 	operator_trait: Box<OperatorTrait  + Send>,
-
+	crossmut: Vec<Box<GeneticOperator>>,
 
 	repetitions: u32,
 
@@ -41,37 +49,39 @@ pub struct Generator
 
 impl Generator
 {
-	pub fn init(popcount: u32, initial_tree_size: u32 ,operators: Vec<Operator>, end_operators: Vec<u32>,
-	            operator_trait: Box<OperatorTrait + Send>, repetitions: u32, selector: Box<Selector>, life: u32) -> Generator
+	pub fn init(popcount: u32, operators: Vec<Operator>, end_operators: Vec<u32>,
+	            operator_trait: Box<OperatorTrait + Send>, repetitions: u32, selector: Box<Selector>, crossmut:Vec<Box<GeneticOperator>>,life: u32) -> Generator
 	{
 		
-		let graph = Box::new(Vec::with_capacity(popcount as usize));
+		let graph = Vec::with_capacity(popcount as usize);
 
-	
+		let mut rng = rand::thread_rng();
 
 		Generator {
 				popcount:popcount,
 				graph_list:graph,
-				initial_tree_size: initial_tree_size,
+
 				operatorpointers : operators, 
 				end_operators: end_operators,
 				operator_trait: operator_trait ,
-
+				crossmut: crossmut,
 				repetitions: repetitions,
 				selector: selector,
-				life: life
+				life: life,
+				population_UUID: [rng.gen::<u64>(); 2]
 			  }
 	
 
 	}
 	pub fn generate_graphs( &mut self)
 	{
-		for _ in 0 .. self.popcount
-		{
-			let new_graph = Graph::grow_graph(&self.operatorpointers,&self.end_operators,self.initial_tree_size, self.life);
+		//for _ in 0 .. self.popcount
+		//{
+		//	let new_graph = Graph::grow_graph(&self.operatorpointers,&self.end_operators,self.initial_tree_size, self.life);
 
-			self.graph_list.push(new_graph);
-		}
+		//	self.graph_list.push(new_graph);
+		//}
+		println!("Stub Method");
 
 	}
 
@@ -79,7 +89,7 @@ impl Generator
 	{
 
 
-		reproduce::reproduce(self)
+		reproduce::reproduce(&self.selector,&mut self.graph_list, &self.crossmut)
 
 		
 		

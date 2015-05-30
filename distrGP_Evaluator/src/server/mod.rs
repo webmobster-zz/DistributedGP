@@ -1,64 +1,62 @@
-extern crate csv;
+extern crate distrGP_Generator;
 
 
-use self::reader::ProblemDescription;
-use super::servermessage::ServerMessage;
 
-use super::enviroment;
 
-use self::generator::Generator;
-use self::generator::graph::Graph;
-use self::generator::graph::visualize;
 
 use std::sync::mpsc::sync_channel;
 use std::sync::mpsc::channel;
 use std::thread;
-
 use std::sync::mpsc::SyncSender;
 use std::sync::mpsc::Receiver;
-
 use std::ptr;
-
-
-
-
 use std::io;
 use std::fs::File;
 use std::path::Path;
-
 use std::fs;
 
 
-pub mod generator;
-mod reader;
+use super::enviroment;
+
+use self::distrGP_Generator::Generator;
+use self::distrGP_Generator::Graph;
+use self::distrGP_Generator::OperatorTrait;
+use self::distrGP_Generator::Operator;
+use self::distrGP_Generator::Selector;
+use self::distrGP_Generator::GeneticOperator;
 
 
 
-pub fn init()
+pub enum ServerMessage
+{
+	Start,
+	PopVec(Vec<Graph>),
+	OperatorTrait(Vec<Box<OperatorTrait + Send>>),
+	
+	Repetitions(u32),
+	EndPop
+
+}
+
+pub fn init(popcount: u32, operators: Vec<Operator>, end_operators: Vec<u32>,
+	    operator_trait: Box<OperatorTrait + Send>, repetitions: u32, selector: Box<Selector>, crossmut:Vec<Box<GeneticOperator>>,life: u32, numclients: u32)
 {
 
-	//read problem description file
 
-	let problem_description = reader::readfile();
 
 
 
 	//server: Generate the initial population
-	//popcount, operators,end_operators: Vec<uint>, fitness_function, point_mutate_probability, tree_mutate_probability, crossover_mutate_probability, selection_type)
 	//this needs fixing badly	
-	let mut generator = generator::Generator::init(
-				problem_description.get_popcount(),
-				problem_description.get_tree_size(),
-				problem_description.get_operators(),
-				problem_description.get_end_operators(),
-
-				problem_description.get_operator_trait(),
-
-
-				problem_description.get_repetitions(),
-
-				problem_description.get_selector(),
-				problem_description.get_life()
+	let mut generator = Generator::init(
+				popcount,
+				operators,
+				end_operators,
+				operator_trait,
+				repetitions,
+				selector,
+				crossmut,
+				life
 				);
 	
 
@@ -69,15 +67,13 @@ pub fn init()
 
 	println!("generated graphs");
 	
-	
-	//println!("pop={}",population);
 
 		
 	//wait for client to connect OR launch local client threads
-	let (receive, send) = launch_enviroments(problem_description.get_client_num());
+	let (receive, send) = launch_enviroments(numclients);
 	println!("launched clients");
 
-	let numclients = send.len() as u32;
+	assert!( numclients == send.len() as u32, "Launching enviroments failed");
 
 	loop
 	{

@@ -1,6 +1,6 @@
 [package]
 
-name = "distrGP"
+name = "distrGP_Generator"
 version = "0.0.1"
 authors = ["Edward Clarke <webmobster@gmail.com>"]
 description = "Experimental GP project"
@@ -13,17 +13,14 @@ license = "Private for now"
 
 [dependencies]
 rand = "0.3.8"
-csv = "0.14.2"
-dot = "0.0.4"
 
-[dependencies.distrGP_Generator]
-path = "./distrGP_Generator"
+[lib]
+name = "distrGP_Generator"
 
-[dependencies.distrGP_ProvidedOperators]
-path = "./distrGP_ProvidedOperators"
 
-[dependencies.distrGP_Evaluator]
-path = "./distrGP_Evaluator"
+
+
+
 
 # The development profile, used for `cargo build`
 [profile.dev]
@@ -38,3 +35,5 @@ opt-level = 3
 debug = false
 rpath = false
 lto = true
+
+

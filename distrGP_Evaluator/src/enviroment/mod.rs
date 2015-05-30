@@ -1,9 +1,12 @@
+extern crate distrGP_Generator;
 
-use super::servermessage::ServerMessage;
 
-use super::server::generator::graph::Graph;
+use super::server::ServerMessage;
 
-use super::server::generator::operator::OperatorTrait;
+
+use self::distrGP_Generator::Graph;
+use self::distrGP_Generator::OperatorTrait;
+
 
 use std::sync::mpsc::SyncSender;
 use std::sync::mpsc::Receiver;

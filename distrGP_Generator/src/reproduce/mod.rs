@@ -10,7 +10,7 @@ use self::rand::Rng;
 
 
 //finish this
-pub fn reproduce(selector: &Box<Selector>, pop: &mut Vec<Graph>, crossmut: Vec<Box<GeneticOperator>>)
+pub fn reproduce(selector: &Box<Selector>, pop: &mut Vec<Graph>, crossmut: &Vec<Box<GeneticOperator>>)
 {
 
 
@@ -34,7 +34,14 @@ pub fn reproduce(selector: &Box<Selector>, pop: &mut Vec<Graph>, crossmut: Vec<B
 
 			if sample < running_total
 			{
-				newpop.push_all(&*crossmut[i].operate(pop,selector));
+				//FIX
+				let new_vec = &*crossmut[i].operate(pop,selector);
+				for x in new_vec
+				{
+					newpop.push(x.clone());
+
+				}
+				
 				break;
 			}
 		}

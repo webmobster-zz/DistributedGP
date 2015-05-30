@@ -1,11 +1,14 @@
 extern crate rand;
 
+extern crate distrGP_Generator;
+extern crate distrGP_ProvidedOperators;
 
-use super::generator::operator::Operator;
 
-use super::generator::selectortrait::Selector;
+use self::distrGP_Generator::Operator;
 
-use super::generator::operator::OperatorTrait;
+use self::distrGP_Generator::Selector;
+
+use self::distrGP_Generator::OperatorTrait;
 
 use std::collections::HashSet;
 
@@ -24,7 +27,6 @@ pub struct ProblemDescription
 {
 	clientnum : u32,
 	popcount: u32,
-	initial_tree_size: u32,
 
 
 	operatorpointers: Vec<Operator>,
@@ -73,11 +75,9 @@ pub fn readfile() -> ProblemDescription
 		//keep
 		clientnum: num_cpus() as u32,
  		popcount: 50,
-		initial_tree_size: 30,
-
 		operatorpointers: operatorindex,
 		repetitions: 50,
-		selector: 3,
+		selector: Box::new(distrGP_ProvidedOperators::selectors::Tournament::new(2)) as Box<Selector>,
 		life: 20000,
 
 		//sort out
@@ -185,10 +185,7 @@ impl ProblemDescription
 		self.selector.clone()
 
 	}
-	pub fn get_tree_size(&self) -> u32
-	{
-		self.initial_tree_size
-	}
+
 	pub fn get_life(&self) -> u32
 	{
 		self.life

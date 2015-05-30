@@ -3,8 +3,7 @@ use super::graph::Graph;
 
 pub trait Selector
 {
-	fn select(&self, pop: &Vec<Graph>) -> Graph;
-	fn reset(&self) -> Graph;
+	fn select(&self, pop: &Vec<Graph>) -> Vec<Graph>;
 	fn get_copy(&self) -> Box<Selector>;
 }
 

@@ -3,6 +3,9 @@ name = "distrGP"
 version = "0.0.1"
 dependencies = [
  "csv 0.14.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "distrGP_Evaluator 0.0.1",
+ "distrGP_Generator 0.0.1",
+ "distrGP_ProvidedOperators 0.0.1",
  "dot 0.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -19,6 +22,29 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "byteorder 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "distrGP_Evaluator"
+version = "0.0.1"
+dependencies = [
+ "distrGP_Generator 0.0.1",
+ "rand 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "distrGP_Generator"
+version = "0.0.1"
+dependencies = [
+ "rand 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "distrGP_ProvidedOperators"
+version = "0.0.1"
+dependencies = [
+ "distrGP_Generator 0.0.1",
+ "rand 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

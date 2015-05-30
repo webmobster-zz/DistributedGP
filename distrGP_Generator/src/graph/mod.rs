@@ -19,14 +19,13 @@ use std::cmp::Ordering::{Less,Equal,Greater};
 use std::collections::HashMap;
 use std::collections::VecDeque;
 
-pub mod visualize;
 
 #[derive(Debug,Clone)]
 pub struct Graph
 {
-	     list: Vec<Node>,
+	     pub list: Vec<Node>,
 	     fitness: Option<u32>,
-	     life: u32,
+	     pub life: u32,
 	     perfect: Option<bool>,
 }
 
@@ -119,7 +118,7 @@ impl Graph
 
 		self.list[index]=new_node;
 
-		let loose_ends = Vec::new();
+		let mut loose_ends = Vec::new();
 
 		loose_ends.push(index);
 
