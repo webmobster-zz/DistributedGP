@@ -10,7 +10,7 @@ pub struct Truncate;
 impl Truncate
 {
 
-	fn init() -> Truncate
+	fn new() -> Truncate
 	{
 		Truncate
 	}

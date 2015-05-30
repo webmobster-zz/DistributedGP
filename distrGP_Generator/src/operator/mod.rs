@@ -4,7 +4,7 @@ pub struct Operator {
     fptr_index: usize,
 
     //fix
-    pub sucessors: u8,
+    sucessors: u8,
 
 }
 
@@ -81,6 +81,12 @@ impl Operator
 	pub fn get_refnum(&self) -> usize
 	{
 		self.fptr_index
+
+	}
+
+	pub fn get_sucessors(&self) -> u8
+	{
+		self.sucessors
 
 	}
 

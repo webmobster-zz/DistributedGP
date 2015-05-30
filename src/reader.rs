@@ -124,7 +124,7 @@ impl ProblemDescription
 		let mut endlist= Vec::new();
 		for op in self.operatorpointers.iter()
 		{
-			if op.sucessors == 0
+			if op.get_sucessors() == 0
 			{
 				endlist.push(i);
 			}

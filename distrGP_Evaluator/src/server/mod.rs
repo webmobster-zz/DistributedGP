@@ -43,8 +43,10 @@ pub fn init(popcount: u32, operators: Vec<Operator>, end_operators: Vec<u32>,
 {
 
 
+	
 
-
+	assert!(numclients > 0, "Need to set more than 1 evaluator threads");
+	assert!(crossmut.len() > 0,"Need to select at least one crossover/mutation genetic operators");
 
 	//server: Generate the initial population
 	//this needs fixing badly	
@@ -93,7 +95,7 @@ pub fn init(popcount: u32, operators: Vec<Operator>, end_operators: Vec<u32>,
 
 		generator.set_graphs(updated_pop);
 
-		let mut graphs = (generator.graph_list).clone();
+		let mut graphs = generator.get_graph_list();
 		graphs.sort();
 		generator.reproduce();
 
@@ -111,6 +113,24 @@ pub fn init(popcount: u32, operators: Vec<Operator>, end_operators: Vec<u32>,
 
 
 
+}
+
+fn check_crossmut(crossmut: &Vec<Box<GeneticOperator>>) -> bool
+{
+	let mut running_total = 0.0;
+
+	for i in 0..crossmut.len()
+	{
+		running_total+=crossmut[i].get_probability();
+	}
+	if running_total == 1.0
+	{
+		true
+	}
+	else
+	{
+		false
+	}
 }
 
 fn get_scores(receiver: &Receiver<ServerMessage>, num_clients: u32) -> Vec<Graph>
@@ -187,16 +207,16 @@ fn start(send: &Vec<SyncSender<ServerMessage>>)
 
 
 //maybe get rid of the &generator
-fn send_pop(pop: &Generator, send: &Vec<SyncSender<ServerMessage>>)
+fn send_pop(generator: &Generator, send: &Vec<SyncSender<ServerMessage>>)
 {
 
 	//create a list of problems
-	let mut current= pop.graph_list.clone();
+	let mut current= generator.get_graph_list();
 	let mut vec_problems = Vec::new();
 
-	for _ in 0..pop.get_repetitions()
+	for _ in 0..generator.get_repetitions()
 	{
-		let mut operator = pop.get_operator_trait();
+		let mut operator = generator.get_operator_trait();
 		operator.init();
 
 		vec_problems.push(operator);
@@ -242,7 +262,7 @@ fn send_pop(pop: &Generator, send: &Vec<SyncSender<ServerMessage>>)
 
 
 		assert!(send[i].send(ServerMessage::OperatorTrait(op_trait_clone)).is_ok());
-		assert!(send[i].send(ServerMessage::Repetitions(pop.get_repetitions())).is_ok());
+		assert!(send[i].send(ServerMessage::Repetitions(generator.get_repetitions())).is_ok());
 
 
 

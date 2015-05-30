@@ -162,7 +162,7 @@ fn iterate_over_entity(entity: &Graph,  mut op_list: Vec<Box<OperatorTrait + Sen
 		}
 
 
-		let mut life = entity.life;
+		let mut life = entity.get_life();
 
 
 		
@@ -226,7 +226,7 @@ fn iterate_over_entity(entity: &Graph,  mut op_list: Vec<Box<OperatorTrait + Sen
 
 
 	}
-	op_list[0].secondary(entity.list.len(),&mut fitness_life_list)
+	op_list[0].secondary(entity.get_size(),&mut fitness_life_list)
 
 
 

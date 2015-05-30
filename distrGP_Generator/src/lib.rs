@@ -27,7 +27,7 @@ mod geneticoperator;
 pub struct Generator
 {
 	popcount: u32,
-	pub graph_list: Vec< Graph>,
+	graph_list: Vec<Graph>,
 	operatorpointers: Vec<Operator>,
 	end_operators: Vec<u32>,
 
@@ -95,6 +95,12 @@ impl Generator
 		
 	}
 
+
+	pub fn get_graph_list(&self) -> Vec<Graph>
+	{
+		self.graph_list.clone()
+		
+	}
 
 
 	pub fn get_graph(&self, index: usize) -> Graph
