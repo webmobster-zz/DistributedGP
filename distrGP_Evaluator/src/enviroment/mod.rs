@@ -162,12 +162,12 @@ fn iterate_over_entity(entity: &Graph,  mut op_list: Vec<Box<OperatorTrait + Sen
 		}
 
 
-		let mut life = entity.get_life();
+		let mut life = entity.get_life().unwrap();
 
 
 		
 
-		let mut index: isize = 0;
+		let mut index: usize = 0;
 		
 
 
@@ -175,7 +175,7 @@ fn iterate_over_entity(entity: &Graph,  mut op_list: Vec<Box<OperatorTrait + Sen
 		loop
 		{
 
-			let (suc1,suc2,_) = entity.get_sucessor_index(index as usize);
+			let (suc1,suc2) = entity.get_sucessor_index(index as usize);
 
 
 
@@ -194,19 +194,9 @@ fn iterate_over_entity(entity: &Graph,  mut op_list: Vec<Box<OperatorTrait + Sen
 			let sucessor_bool = op_trait.op(trait_index);
 
 		
-			if sucessor_bool
-			{
-
-				index = suc1;
-			}
-			else
-			{
-				index = suc2;
-
-			}
 
 
-			if suc1 == -1
+			if suc1 == None
 			{
 
 				let fitness = op_trait.fitness();
@@ -214,6 +204,18 @@ fn iterate_over_entity(entity: &Graph,  mut op_list: Vec<Box<OperatorTrait + Sen
 				break;
 
 			}
+
+			if sucessor_bool
+			{
+
+				index = suc1.unwrap();
+			}
+			else
+			{
+				index = suc2.unwrap();
+
+			}
+
 			
 
 			life = life -1;

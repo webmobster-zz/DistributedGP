@@ -1,5 +1,5 @@
 
-mod geneticoperators;
+pub mod geneticoperators;
 pub mod selectors;
 
 

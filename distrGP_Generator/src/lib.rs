@@ -1,19 +1,18 @@
-
-
-
-
+//#![deny(warnings)]
 
 extern crate rand;
 
 
 pub use self::graph::Graph;
+pub use self::graph::Node;
+
 pub use self::geneticoperator::GeneticOperator;
 pub use self::selectortrait::Selector;
-
 pub use self::operator::Operator;
 pub use self::operator::OperatorTrait;
 
 use self::rand::Rng;
+
 
 
 pub mod graph;
@@ -29,10 +28,9 @@ pub struct Generator
 	popcount: u32,
 	graph_list: Vec<Graph>,
 	operatorpointers: Vec<Operator>,
-	end_operators: Vec<u32>,
-
 	operator_trait: Box<OperatorTrait  + Send>,
 	crossmut: Vec<Box<GeneticOperator>>,
+	grow_operator: Box<GeneticOperator>,
 
 	repetitions: u32,
 
@@ -49,47 +47,82 @@ pub struct Generator
 
 impl Generator
 {
-	pub fn init(popcount: u32, operators: Vec<Operator>, end_operators: Vec<u32>,
-	            operator_trait: Box<OperatorTrait + Send>, repetitions: u32, selector: Box<Selector>, crossmut:Vec<Box<GeneticOperator>>,life: u32) -> Generator
+	pub fn init(popcount: u32, operators: Vec<Operator>,
+	            operator_trait: Box<OperatorTrait + Send>, repetitions: u32, selector: Box<Selector>, crossmut:Vec<Box<GeneticOperator>>,grow_operator: Box<GeneticOperator>, life: u32) -> Generator
 	{
 		
 		let graph = Vec::with_capacity(popcount as usize);
 
 		let mut rng = rand::thread_rng();
 
-		Generator {
+		let generator = Generator {
 				popcount:popcount,
 				graph_list:graph,
 
 				operatorpointers : operators, 
-				end_operators: end_operators,
 				operator_trait: operator_trait ,
 				crossmut: crossmut,
-				repetitions: repetitions,
+				grow_operator: grow_operator,
+
 				selector: selector,
+
+				repetitions: repetitions,
 				life: life,
 				population_UUID: [rng.gen::<u64>(); 2]
-			  }
-	
+			  };
+		assert!(generator.crossmut.len() > 0,"Need to select at least one crossover/mutation genetic operators");
+		assert!(generator.check_crossmut(),"Genetic Operator probabilties don't add up to 1.0");
 
+		generator
 	}
+
+	fn check_crossmut(&self) -> bool
+	{
+		let mut running_total = 0.0;
+
+		for i in 0..self.crossmut.len()
+		{
+			running_total+=self.crossmut[i].get_probability();
+		}
+		if running_total == 1.0
+		{
+			true
+		}
+		else
+		{
+			false
+		}
+	}
+
+	//a bit hacky
 	pub fn generate_graphs( &mut self)
 	{
-		//for _ in 0 .. self.popcount
-		//{
-		//	let new_graph = Graph::grow_graph(&self.operatorpointers,&self.end_operators,self.initial_tree_size, self.life);
 
-		//	self.graph_list.push(new_graph);
-		//}
-		println!("Stub Method");
+		let closure = self.selector.select(vec!());
+		
+		while self.graph_list.len() < self.popcount as usize
+		{
+			let new_graph = self.grow_operator.operate(&self.operatorpointers,&closure);
+			for x in new_graph
+			{
+				let mut new_graph = x.clone();
+				new_graph.set_life(self.life);
+				self.graph_list.push(new_graph);
+				if self.graph_list.len() == self.popcount as usize
+				{
+						break;
+				}
 
+			}
+
+		}
 	}
 
 	pub fn reproduce(&mut self)
 	{
 
-
-		reproduce::reproduce(&self.selector,&mut self.graph_list, &self.crossmut)
+		//think about how to deal with this clone
+		self.graph_list = reproduce::reproduce(&self.selector,self.graph_list.clone(), &self.crossmut, &self.operatorpointers);
 
 		
 		
@@ -116,7 +149,7 @@ impl Generator
 		self.graph_list=graphs;
 
 	}
-	#[allow(dead_code)]
+
 	pub fn get_popcount(&self) -> u32
 	{
 		self.popcount

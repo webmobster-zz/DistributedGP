@@ -32,9 +32,14 @@ impl Selector for Tournament
 		Box::new(self.clone()) as Box<Selector>
 	
 	}
-	fn select(&self, pop: &Vec<Graph>) -> Vec<Graph>
+	fn select(&self, pop: Vec<Graph>) -> Box<Fn() -> Graph>
 	{
 
+		let tournament_size = self.tournament_size;
+		Box::new(move ||
+		{
+
+			assert!(pop.len() != 0, "Can't have a population size of 0");
 			let mut rng = rand::thread_rng();
 			let graph_count = Range::new(0, pop.len());
 
@@ -43,7 +48,7 @@ impl Selector for Tournament
 			//inefficient for small tournament sizes
 			let mut tournament_vector = Vec::new();
 
-			for _ in 0 .. self.tournament_size
+			for _ in 0 .. tournament_size
 			{
 				tournament_vector.push(pop[graph_count.ind_sample(&mut rng)].clone());
 
@@ -52,10 +57,8 @@ impl Selector for Tournament
 
 		
 		
-			let mut final_graph = Vec::new();
-			final_graph.push(tournament_vector[0].clone());
-			final_graph
-
+			tournament_vector[0].clone()
+		})
 
 
 

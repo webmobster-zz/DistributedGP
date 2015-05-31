@@ -30,13 +30,6 @@ pub struct ProblemDescription
 
 
 	operatorpointers: Vec<Operator>,
-	point_mutate_probability: f32,
-	tree_mutate_probability: f32,
-	crossover_probability: f32,
-	flat_crossover_probability: f32,
-	point_remove_probability: f32,
-	clean_probability: f32,
-
 	repetitions: u32,
 
 
@@ -79,16 +72,6 @@ pub fn readfile() -> ProblemDescription
 		repetitions: 50,
 		selector: Box::new(distrGP_ProvidedOperators::selectors::Tournament::new(2)) as Box<Selector>,
 		life: 20000,
-
-		//sort out
-		point_mutate_probability: 0.1,
-		tree_mutate_probability: 0.01,
-		crossover_probability: 0.8,
-		flat_crossover_probability: 0.001,
-		point_remove_probability: 0.001,
-		clean_probability: 0.088,
-
-
 
 		
 		operator_trait: Box::new ((OperatorStruct::new(
@@ -142,37 +125,6 @@ impl ProblemDescription
 		
 	}
 
-
-	pub fn get_point_mutate_probability(&self) -> f32
-	{
-		self.point_mutate_probability
-
-	}
-	pub fn get_tree_mutate_probability(&self) -> f32
-	{
-		self.tree_mutate_probability
-
-	}
-	pub fn get_crossover_probability(&self) -> f32
-	{
-		self.crossover_probability
-
-	}
-	pub fn get_flat_crossover_probability(&self) -> f32
-	{
-		self.flat_crossover_probability
-
-	}
-	pub fn get_point_remove_probability(&self) -> f32
-	{
-		self.point_remove_probability
-
-	}
-	pub fn get_clean_probability(&self) -> f32
-	{
-		self.clean_probability
-
-	}
 
 
 	pub fn get_repetitions(&self) -> u32

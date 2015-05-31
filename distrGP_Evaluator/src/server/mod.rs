@@ -38,32 +38,18 @@ pub enum ServerMessage
 
 }
 
-pub fn init(popcount: u32, operators: Vec<Operator>, end_operators: Vec<u32>,
-	    operator_trait: Box<OperatorTrait + Send>, repetitions: u32, selector: Box<Selector>, crossmut:Vec<Box<GeneticOperator>>,life: u32, numclients: u32)
+pub fn init(mut generator: Generator, numclients: u32)
 {
 
 
 	
 
 	assert!(numclients > 0, "Need to set more than 1 evaluator threads");
-	assert!(crossmut.len() > 0,"Need to select at least one crossover/mutation genetic operators");
-
-	//server: Generate the initial population
-	//this needs fixing badly	
-	let mut generator = Generator::init(
-				popcount,
-				operators,
-				end_operators,
-				operator_trait,
-				repetitions,
-				selector,
-				crossmut,
-				life
-				);
-	
 
 
-	println!("created generator");
+
+
+
 	generator.generate_graphs();
 
 
@@ -96,16 +82,11 @@ pub fn init(popcount: u32, operators: Vec<Operator>, end_operators: Vec<u32>,
 		generator.set_graphs(updated_pop);
 
 		let mut graphs = generator.get_graph_list();
+
+		//remove later
 		graphs.sort();
 		generator.reproduce();
 
-	
-
-		//start clients
-		start(&send);
-
-		//send new population
-		send_pop(&generator, &send);
 	}
 
 			
@@ -115,23 +96,6 @@ pub fn init(popcount: u32, operators: Vec<Operator>, end_operators: Vec<u32>,
 
 }
 
-fn check_crossmut(crossmut: &Vec<Box<GeneticOperator>>) -> bool
-{
-	let mut running_total = 0.0;
-
-	for i in 0..crossmut.len()
-	{
-		running_total+=crossmut[i].get_probability();
-	}
-	if running_total == 1.0
-	{
-		true
-	}
-	else
-	{
-		false
-	}
-}
 
 fn get_scores(receiver: &Receiver<ServerMessage>, num_clients: u32) -> Vec<Graph>
 {

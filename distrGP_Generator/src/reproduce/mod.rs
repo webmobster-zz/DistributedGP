@@ -1,26 +1,30 @@
 extern crate rand;
 
-use super::Generator;
 use super::Graph;
 use super::GeneticOperator;
-use super::selectortrait::Selector;
+use super::Operator;
+use super::Selector;
 
 use self::rand::Rng;
 
 
 
 //finish this
-pub fn reproduce(selector: &Box<Selector>, pop: &mut Vec<Graph>, crossmut: &Vec<Box<GeneticOperator>>)
+pub fn reproduce(selector: &Box<Selector>, pop: Vec<Graph>, crossmut: &Vec<Box<GeneticOperator>>, operators: &Vec<Operator>) -> Vec<Graph>
 {
 
 
 	let mut rng = rand::weak_rng();
 
-	let mut weights: Vec<f32> = Vec::new();
-
 	let mut newpop: Vec<Graph> = Vec::new();
 
-	for _ in 0 .. pop.len()
+	assert!(pop.len() != 0, "Can't have a population size of 0");
+
+	let length= pop.len();
+
+	let closure = selector.select(pop);
+
+	while newpop.len() < length
 	{
 		let sample = rng.gen::<f32>();
 
@@ -35,11 +39,15 @@ pub fn reproduce(selector: &Box<Selector>, pop: &mut Vec<Graph>, crossmut: &Vec<
 			if sample < running_total
 			{
 				//FIX
-				let new_vec = &*crossmut[i].operate(pop,selector);
+				let new_vec = &*crossmut[i].operate(operators,&closure);
 				for x in new_vec
 				{
 					newpop.push(x.clone());
 
+					if newpop.len() == length
+					{
+						break;
+					}
 				}
 				
 				break;
@@ -50,12 +58,12 @@ pub fn reproduce(selector: &Box<Selector>, pop: &mut Vec<Graph>, crossmut: &Vec<
 	
 
 
-	if pop.len() != newpop.len()
+	if length != newpop.len()
 	{
 		panic!("wrong number of graphs")
 	}
 
-	*pop=newpop;
+	newpop
 }
 
 

@@ -4,20 +4,11 @@ extern crate rand;
 
 use super::operator::Operator;
 
-
 use  std::cmp::min;
 use  std::cmp::max;
 
-
-use self::rand::distributions::{IndependentSample, Range};
-
-
 use std::cmp::Ordering;
 use std::cmp::Ordering::{Less,Equal,Greater};
-
-
-use std::collections::HashMap;
-use std::collections::VecDeque;
 
 
 #[derive(Debug,Clone)]
@@ -25,14 +16,16 @@ pub struct Graph
 {
 	     list: Vec<Node>,
 	     fitness: Option<u32>,
-	     life: u32,
+	     life: Option<u32>,
 	     perfect: Option<bool>,
 }
 
 #[derive(Clone,Debug)]
-pub struct Node(   Operator, isize,isize,isize);
+pub struct Node( pub Operator,pub Option<usize>,pub Option<usize>);
 
 
+
+//These are all to allow sorting based on fitness
 
 //This is probably a bad idea
 impl Eq for Graph
@@ -93,9 +86,9 @@ impl Graph
 
 
 
-	pub fn empty_graph(fitness:Option<u32>, life: u32) -> Graph
+	pub fn empty_graph() -> Graph
 	{
-		Graph{list: Vec::new(), fitness: fitness, life: life,perfect: None}
+		Graph{list: Vec::new(), fitness: None, life: None,perfect: None}
 	}
 
 	
@@ -105,13 +98,13 @@ impl Graph
 
 
 
-	pub fn get_sucessor_index(&self,  mut index: usize) -> (isize,isize,isize)
+	pub fn get_sucessor_index(&self,  mut index: usize) -> (Option<usize>,Option<usize>)
 	{
 		index = index % self.list.len();
 
 		match self.list[index]
 		{
-			Node(_, suc1,suc2,suc3) => (suc1,suc2,suc3),
+			Node(_, suc1,suc2) => (suc1,suc2),
 
 		}
 
@@ -127,7 +120,7 @@ impl Graph
 		
 		let op =match self.list[index]
 		{
-			Node(ref op, _,_,_) => op,
+			Node(ref op, _,_) => op,
 		};
 		op.clone()
 
@@ -157,10 +150,10 @@ impl Graph
 
 	pub fn set_life(&mut self, life: u32)
 	{
-		self.life = life;
+		self.life = Some(life);
 
 	}
-	pub fn get_life(& self) -> u32
+	pub fn get_life(& self) -> Option<u32>
 	{
 		self.life
 
@@ -178,6 +171,35 @@ impl Graph
 		let higher = max(first,second);
 		let lower = min(first,second);
 		&self.list[lower..higher]
+
+
+	}
+
+	pub fn replace_slice(&mut self,start :usize, slice: &[Node])
+	{
+
+		let mut x=start;
+		for i in 0 .. slice.len()
+		{	
+
+			x = x +1;
+
+			if  x < self.list.len()
+			{
+				self.list[x]=slice[i].clone();
+			}
+			else if self.list.len() ==x
+			{
+
+				self.list.push(slice[i].clone());
+			}
+			else
+			{
+				panic!("error in logic somewhere");
+			}
+
+		}
+
 
 
 	}
@@ -212,17 +234,17 @@ impl Graph
 		for i in 0 .. self.list.len()
 		{
 
-			let (suc1,suc2,_) = self.get_sucessor_index(i);
+			let (suc1,suc2) = self.get_sucessor_index(i);
 
 
-			if suc2 != -1
+			if suc2 != None
 			{
-				edges.push((i, (suc1 as usize)  % self.list.len() ,Some(true)));
-				edges.push((i, (suc2 as usize)  % self.list.len() ,Some(false)));
+				edges.push((i, (suc1.unwrap())  % self.list.len() ,Some(true)));
+				edges.push((i, (suc2.unwrap())  % self.list.len() ,Some(false)));
 
-			}else if suc1 != -1
+			}else if suc1 != None
 			{
-				edges.push((i, (suc1 as usize)  % self.list.len() ,None));
+				edges.push((i, (suc1.unwrap())  % self.list.len() ,None));
 
 			}
 			
@@ -237,6 +259,17 @@ impl Graph
 
 	}
 
+	pub fn set_node(&mut self, index: usize, node: Node)
+	{
+		self.list[index] = node;
+	}
+
+	pub fn get_node(&self,index: usize ) -> Node
+	{
+		self.list[index].clone()
+
+	}
+
 	pub fn remove_node(&mut self,index: usize )
 	{
 		self.list.remove(index);
@@ -244,13 +277,9 @@ impl Graph
 	}
 
 
-	fn add_to_end_node(&mut self, operator:   Operator) -> usize
+	pub fn add_to_end(&mut self, node:  Node)
 	{
-
-		let new_node = Node(operator, -1,-1,-1);
-		let size = self.list.len();
-		self.list.push(new_node);
-		size
+		self.list.push(node);
 
 	}
 

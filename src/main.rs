@@ -9,8 +9,14 @@
 
 
 extern crate distrGP_Evaluator;
+extern crate distrGP_ProvidedOperators;
+extern crate distrGP_Generator;
 
 use distrGP_Evaluator::server;
+use distrGP_Generator::GeneticOperator;
+use distrGP_Generator::Generator;
+use distrGP_ProvidedOperators::geneticoperators::TreeCross;
+use distrGP_ProvidedOperators::geneticoperators::StandardGrow;
 
 mod reader;
 
@@ -27,10 +33,12 @@ fn main()
 
 	let problem_description = reader::readfile();
 
-	server::init(
+	//server: Generate the initial population
+	//this needs fixing badly	
+	let generator = Generator::init(
+				
 				problem_description.get_popcount(),
 				problem_description.get_operators(),
-				problem_description.get_end_operators(),
 
 				problem_description.get_operator_trait(),
 
@@ -38,12 +46,16 @@ fn main()
 				problem_description.get_repetitions(),
 
 				problem_description.get_selector(),
-				Vec::new(),
+				vec!(Box::new(TreeCross::new(1.0)) as Box<GeneticOperator>),
+				Box::new(StandardGrow::new(1.0,5)),
 				problem_description.get_life(),
-				4
-	);
-
+				);
+	
+	println!("created generator");
 	println!("server launching");
+	server::init(generator,4);
+
+	
 	
 
 	
