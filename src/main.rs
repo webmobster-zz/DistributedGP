@@ -40,15 +40,10 @@ fn main()
 				problem_description.get_popcount(),
 				problem_description.get_operators(),
 
-				problem_description.get_operator_trait(),
-
-
-				problem_description.get_repetitions(),
-
 				problem_description.get_selector(),
 				vec!(Box::new(TreeCross::new(1.0)) as Box<GeneticOperator>),
-				Box::new(StandardGrow::new(1.0,5)),
-				problem_description.get_life(),
+				Box::new(StandardGrow::new(1.0,300)),
+				problem_description.get_life()
 				);
 	
 	println!("created generator");

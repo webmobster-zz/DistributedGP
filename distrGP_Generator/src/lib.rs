@@ -8,17 +8,23 @@ pub use self::graph::Node;
 
 pub use self::geneticoperator::GeneticOperator;
 pub use self::selectortrait::Selector;
+pub use self::operator::OperatorMap;
 pub use self::operator::Operator;
-pub use self::operator::OperatorTrait;
+pub use self::operator::RandomKey;
+pub use self::state::GlobalState;
+pub use self::state::LocalState;
+
 
 use self::rand::Rng;
 
 
 
-pub mod graph;
-pub mod operator;
+mod graph;
+mod operator;
+mod state;
 mod selectortrait;
 mod reproduce;
+
 
 mod geneticoperator;
 
@@ -27,12 +33,10 @@ pub struct Generator
 {
 	popcount: u32,
 	graph_list: Vec<Graph>,
-	operatorpointers: Vec<Operator>,
-	operator_trait: Box<OperatorTrait  + Send>,
+	operatorpointers: OperatorMap,
 	crossmut: Vec<Box<GeneticOperator>>,
 	grow_operator: Box<GeneticOperator>,
-
-	repetitions: u32,
+	//evaluation_settings: EvaluationSettings,
 
 	selector: Box<selectortrait::Selector>,
 	life: u32,
@@ -47,8 +51,7 @@ pub struct Generator
 
 impl Generator
 {
-	pub fn init(popcount: u32, operators: Vec<Operator>,
-	            operator_trait: Box<OperatorTrait + Send>, repetitions: u32, selector: Box<Selector>, crossmut:Vec<Box<GeneticOperator>>,grow_operator: Box<GeneticOperator>, life: u32) -> Generator
+	pub fn init(popcount: u32, operators: OperatorMap,selector: Box<Selector>, crossmut:Vec<Box<GeneticOperator>>,grow_operator: Box<GeneticOperator>, life: u32) -> Generator
 	{
 		
 		let graph = Vec::with_capacity(popcount as usize);
@@ -60,13 +63,11 @@ impl Generator
 				graph_list:graph,
 
 				operatorpointers : operators, 
-				operator_trait: operator_trait ,
 				crossmut: crossmut,
 				grow_operator: grow_operator,
 
 				selector: selector,
 
-				repetitions: repetitions,
 				life: life,
 				population_UUID: [rng.gen::<u64>(); 2]
 			  };
@@ -102,7 +103,7 @@ impl Generator
 		
 		while self.graph_list.len() < self.popcount as usize
 		{
-			let new_graph = self.grow_operator.operate(&self.operatorpointers,&closure);
+			let new_graph = self.grow_operator.operate(&mut self.operatorpointers,&closure);
 			for x in new_graph
 			{
 				let mut new_graph = x.clone();
@@ -122,7 +123,7 @@ impl Generator
 	{
 
 		//think about how to deal with this clone
-		self.graph_list = reproduce::reproduce(&self.selector,self.graph_list.clone(), &self.crossmut, &self.operatorpointers);
+		self.graph_list = reproduce::reproduce(&self.selector,self.graph_list.clone(), &self.crossmut, &mut self.operatorpointers);
 
 		
 		
@@ -155,18 +156,12 @@ impl Generator
 		self.popcount
 		
 	}
-	pub fn get_operator_trait(&self) -> Box<OperatorTrait + Send>
+	pub fn get_operator_map(&self) -> OperatorMap
 	{
-		self.operator_trait.clone()
+		self.operatorpointers.clone()
 		
 	}
-
-
-	pub fn get_repetitions(&self) -> u32
-	{
-		self.repetitions.clone()
-		
-	}
+	
 
 
 

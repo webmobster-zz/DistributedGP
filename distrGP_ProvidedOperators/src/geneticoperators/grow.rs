@@ -4,7 +4,8 @@ extern crate distrGP_Generator;
 use self::distrGP_Generator::Graph;
 use self::distrGP_Generator::Node;
 use self::distrGP_Generator::GeneticOperator;
-use self::distrGP_Generator::Operator;
+use self::distrGP_Generator::OperatorMap;
+use self::distrGP_Generator::RandomKey;
 
 
 use self::rand::distributions::{IndependentSample, Range};
@@ -47,10 +48,10 @@ impl GeneticOperator for StandardGrow
 	}
 
 
-	fn operate(&self, operators: &Vec<Operator>, _: &Box<Fn() -> Graph>) -> Vec<Graph>
+	fn operate(&self, map: &mut OperatorMap, _: &Box<Fn() -> Graph>) -> Vec<Graph>
 	{
 
-		if operators.len() ==0
+		if map.len() ==0
 		{
 			panic!("no operators defined");
 
@@ -58,11 +59,12 @@ impl GeneticOperator for StandardGrow
 
 		let mut end_operators = Vec::new();
 		
-		for i in 0..operators.len()
+		for entry in map.iter()
 		{
-			if operators[i].get_sucessors() == 0
+			let (hash,op)=entry;
+			if op.get_sucessors() == 0
 			{
-				end_operators.push(i);
+				end_operators.push(*hash);
 			}
 
 		}
@@ -78,14 +80,14 @@ impl GeneticOperator for StandardGrow
 		let mut new_graph: Graph = Graph::empty_graph();
 
 
-		let operator_count = Range::new(0, operators.len());
+
 
 		//fast but bad
 	   	let mut rng = rand::weak_rng();
 
 
 		//intial node
-		let operator = operators[operator_count.ind_sample(&mut rng)].clone();
+		let operator = map.random_key(&mut rng);
 		let mut loose_ends = Vec::new();
 
 		let end = new_graph.get_size();
@@ -116,29 +118,29 @@ impl GeneticOperator for StandardGrow
 				let end = new_graph.get_size();
 			
 				
-				if op.get_sucessors() ==2
+				if map[&op].get_sucessors() ==2
 				{
 					//replace unlinked node with node with links
 					new_graph.set_node(working_index,Node(op,Some(end),Some(end +1)));
 
 					//add new node with unfilled sucessors to the ends
-					new_graph.add_to_end(Node(operators[operator_count.ind_sample(&mut rng)].clone(),None,None));
-					new_graph.add_to_end(Node(operators[operator_count.ind_sample(&mut rng)].clone(),None,None));
+					new_graph.add_to_end(Node( map.random_key(&mut rng),None,None));
+					new_graph.add_to_end(Node( map.random_key(&mut rng),None,None));
 					loose_ends.push(end);
 					loose_ends.push(end+1);
 
 				}
-				else if op.get_sucessors() ==1
+				else if  map[&op].get_sucessors() ==1
 				{
 
 					new_graph.set_node(working_index,Node(op,Some(end),None));
 
 					//add new node with unfilled sucessors to the ends
-					new_graph.add_to_end(Node(operators[operator_count.ind_sample(&mut rng)].clone(),None,None));
+					new_graph.add_to_end(Node(map.random_key(&mut rng),None,None));
 					loose_ends.push(end);
 
 				}
-				else if op.get_sucessors() ==0
+				else if  map[&op].get_sucessors() ==0
 				{
 					
 					//do nothing, as the Node should have unconnected sucessors already
@@ -165,7 +167,7 @@ impl GeneticOperator for StandardGrow
 			
 			//get a random index from the end operator list, which is used to get an operator from the operator list
 			//SAME OPERATOR EVERY TIME FIX THIS!
-			let operator = operators[end_operators[end_operator_count.ind_sample(&mut rng)] as usize].clone();
+			let operator = end_operators[end_operator_count.ind_sample(&mut rng)];
 
 			let working_index = loose_ends.pop().unwrap();
 			
@@ -176,13 +178,13 @@ impl GeneticOperator for StandardGrow
 			let end = new_graph.get_size();
 
 
-			if op.get_sucessors() ==3
+			if  map[&op].get_sucessors() == 3
 			{
 				panic!("unimplemented feature");
 
 			}
 			
-			else if op.get_sucessors() ==2
+			else if  map[&op].get_sucessors() == 2
 			{
 				//replace unlinked node with node with links
 				new_graph.set_node(working_index,Node(op,Some(end),Some(end +1)));
@@ -194,7 +196,7 @@ impl GeneticOperator for StandardGrow
 				loose_ends.push(end+1);
 
 			}
-			else if op.get_sucessors() ==1
+			else if  map[&op].get_sucessors() == 1
 			{
 				//replace unlinked node with node with link
 				new_graph.set_node(working_index,Node(op,Some(end),None));
@@ -204,7 +206,7 @@ impl GeneticOperator for StandardGrow
 				loose_ends.push(end);
 
 			}
-			else if op.get_sucessors() ==0
+			else if map[&op].get_sucessors() ==0
 			{
 
 				//do nothing, as the Node should have unconnected sucessors already

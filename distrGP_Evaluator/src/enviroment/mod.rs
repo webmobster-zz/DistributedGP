@@ -1,3 +1,4 @@
+extern crate alloc;
 extern crate distrGP_Generator;
 
 
@@ -5,12 +6,18 @@ use super::server::ServerMessage;
 
 
 use self::distrGP_Generator::Graph;
-use self::distrGP_Generator::OperatorTrait;
-
+use self::distrGP_Generator::OperatorMap;
+use self::distrGP_Generator::Operator;
+use self::distrGP_Generator::GlobalState;
+use self::distrGP_Generator::LocalState;
+use self::pool::ThreadPool;
+use self::pool::GreenThreadData;
 
 use std::sync::mpsc::SyncSender;
 use std::sync::mpsc::Receiver;
+use std::sync::{Arc, Mutex};
 
+mod pool;
 
 
 
@@ -40,22 +47,7 @@ pub fn init(send: SyncSender<ServerMessage>, receive: Receiver<ServerMessage>)
 		{
 			Ok(msg) => {match msg
 			{
-				ServerMessage::OperatorTrait(x) => {op_trait = x},
-				_=> {panic!("Invalid Message");}
-			};},
-			Err(_)=> panic!("receive error")
-				
-		}
-
-
-
-		let repetitions;
-
-		match receive.recv()
-		{
-			Ok(msg) => {match msg
-			{
-				ServerMessage::Repetitions(x) => {repetitions = x},
+				ServerMessage::OperatorMap(x) => {op_trait = x},
 				_=> {panic!("Invalid Message");}
 			};},
 			Err(_)=> panic!("receive error")
@@ -97,7 +89,7 @@ pub fn init(send: SyncSender<ServerMessage>, receive: Receiver<ServerMessage>)
 		println!("env got {} graphs",vec_pops.len());
 
 		// run all populations and send fitnesses 
-		run(&mut vec_pops,op_trait, repetitions);
+		run(&mut vec_pops,&op_trait, 12);
 
 		assert!(send.send(ServerMessage::PopVec(vec_pops)).is_ok());
 
@@ -113,8 +105,9 @@ pub fn init(send: SyncSender<ServerMessage>, receive: Receiver<ServerMessage>)
 	
 }
 #[allow(unused_mut)]
-fn run(pop: &mut Vec<Graph>, mut op_trait: Vec<Box<OperatorTrait + Send>>,repetitions: u32)
+fn run(pop: &mut Vec<Graph>, map: &OperatorMap,thread_count: u32)
 {
+
 
 
 	for i in 0 .. pop.len()
@@ -122,13 +115,7 @@ fn run(pop: &mut Vec<Graph>, mut op_trait: Vec<Box<OperatorTrait + Send>>,repeti
 
 		let working_graph = (&mut **pop).get_mut(i).unwrap();
 
-		let mut op_trait_clone = Vec::new();
-		for z in 0..op_trait.len()
-		{
-			op_trait_clone.push(op_trait[z].clone());
-
-		}
-		let (result,perfect) = iterate_over_entity(working_graph, op_trait_clone,repetitions);
+		let (result,perfect) = iterate_over_entity(working_graph, map,thread_count as usize);
 
 		working_graph.set_fitness(result);
 		working_graph.set_perfect(perfect);
@@ -140,100 +127,44 @@ fn run(pop: &mut Vec<Graph>, mut op_trait: Vec<Box<OperatorTrait + Send>>,repeti
 }
 
 
-
 //result, life
 //actual method that iterates over an individual
-fn iterate_over_entity(entity: &Graph,  mut op_list: Vec<Box<OperatorTrait + Send>>, repetitions: u32) -> (u32,bool)
+fn iterate_over_entity(entity: &Graph, map: &OperatorMap, thead_num: usize) -> (u32,bool)
 {
-	let mut dups =0;
-	let mut fitness_life_list: Vec<Option<(u32,u32)>> = Vec::new();
+
+
+	let initial_global_state = GlobalState{vec: vec!(1), vec_pointer: 5};
+	let initial_local_state = LocalState::new();
+
+
+
+
 	
-	for i in 0 .. repetitions as usize
+	let pool= Arc::new(Mutex::new(ThreadPool::new(thead_num)));
+
+
+
+	let green= GreenThreadData::new(initial_global_state.clone(),initial_local_state, entity,map);
+	    
+	pool.lock().unwrap().execute(green,pool.clone());
+
+	//Hacky
+	while alloc::arc::strong_count(&pool) > 1
 	{
-
-		let mut op_trait = op_list[i].clone();
-
-
-
-		if !op_trait.init_state()
-		{
-			panic!("unitialized data");
-
-		}
-
-
-		let mut life = entity.get_life().unwrap();
-
-
-		
-
-		let mut index: usize = 0;
-		
-
-
-	
-		loop
-		{
-
-			let (suc1,suc2) = entity.get_sucessor_index(index as usize);
-
-
-
-	
-			if life == 0
-			{
-				fitness_life_list.push(None);
-				//println!("outof life");
-				break 
-
-			}
-
-
-			let trait_index = entity.get_operator(index as usize).call();
-
-			let sucessor_bool = op_trait.op(trait_index);
-
-		
-
-
-			if suc1 == None
-			{
-
-				let fitness = op_trait.fitness();
-				fitness_life_list.push(Some((fitness,life)));
-				break;
-
-			}
-
-			if sucessor_bool
-			{
-
-				index = suc1.unwrap();
-			}
-			else
-			{
-				index = suc2.unwrap();
-
-			}
-
-			
-
-			life = life -1;
-
-
-
-		}
-
-
-
-
+		//std::thread::sleep_ms(100);
 	}
-	op_list[0].secondary(entity.get_size(),&mut fitness_life_list)
 
 
+	let mut life = entity.get_life().unwrap();
+
+
+		
+
+	let mut index: usize = 0;
+		
+ 	(8,true)
 
 }
-
 
 
 

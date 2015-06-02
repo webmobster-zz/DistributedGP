@@ -2,7 +2,6 @@
 
 extern crate rand; 
 
-use super::operator::Operator;
 
 use  std::cmp::min;
 use  std::cmp::max;
@@ -21,7 +20,7 @@ pub struct Graph
 }
 
 #[derive(Clone,Debug)]
-pub struct Node( pub Operator,pub Option<usize>,pub Option<usize>);
+pub struct Node( pub [u64;2],pub Option<usize>,pub Option<usize>);
 
 
 
@@ -113,7 +112,7 @@ impl Graph
 
 
 
-	pub fn get_operator(&self, mut index: usize) -> Operator
+	pub fn get_operator(&self, mut index: usize) -> [u64;2]
 	{
 		index = index % self.list.len();
 
@@ -213,13 +212,13 @@ impl Graph
 	{
 		let mut labels  = Vec::new();
 
-		let s = format!("{{begining:{}}}",self.get_operator(0).get_refnum());
+		let s = format!("{{begining:{:?}}}",self.get_operator(0));
 		labels.push(s);
 
 		for i in (1 .. self.list.len())
 		{
 
-			let s = format!("{{{}}}",self.get_operator(i).get_refnum());
+			let s = format!("{{{:?}}}",self.get_operator(i));
 			labels.push(s);
 
 

@@ -20,8 +20,8 @@ use super::enviroment;
 
 use self::distrGP_Generator::Generator;
 use self::distrGP_Generator::Graph;
-use self::distrGP_Generator::OperatorTrait;
 use self::distrGP_Generator::Operator;
+use self::distrGP_Generator::OperatorMap;
 use self::distrGP_Generator::Selector;
 use self::distrGP_Generator::GeneticOperator;
 
@@ -31,7 +31,7 @@ pub enum ServerMessage
 {
 	Start,
 	PopVec(Vec<Graph>),
-	OperatorTrait(Vec<Box<OperatorTrait + Send>>),
+	OperatorMap(OperatorMap),
 	
 	Repetitions(u32),
 	EndPop
@@ -176,17 +176,10 @@ fn send_pop(generator: &Generator, send: &Vec<SyncSender<ServerMessage>>)
 
 	//create a list of problems
 	let mut current= generator.get_graph_list();
-	let mut vec_problems = Vec::new();
 
-	for _ in 0..generator.get_repetitions()
-	{
-		let mut operator = generator.get_operator_trait();
-		operator.init();
-
-		vec_problems.push(operator);
+	let mut map = generator.get_operator_map();
 
 
-	}	
 
 
 	//split the population up equally amont the size of enviroments
@@ -216,17 +209,8 @@ fn send_pop(generator: &Generator, send: &Vec<SyncSender<ServerMessage>>)
 	{
 
 
-		//hack to clone the list of problems
-		let mut op_trait_clone = Vec::new();
-		for z in 0..vec_problems.len()
-		{
-			op_trait_clone.push(vec_problems[z].clone());
 
-		}
-
-
-		assert!(send[i].send(ServerMessage::OperatorTrait(op_trait_clone)).is_ok());
-		assert!(send[i].send(ServerMessage::Repetitions(generator.get_repetitions())).is_ok());
+		assert!(send[i].send(ServerMessage::OperatorMap(map.clone())).is_ok());
 
 
 

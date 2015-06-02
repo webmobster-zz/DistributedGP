@@ -2,7 +2,7 @@ extern crate rand;
 
 use super::Graph;
 use super::GeneticOperator;
-use super::Operator;
+use super::OperatorMap;
 use super::Selector;
 
 use self::rand::Rng;
@@ -10,7 +10,7 @@ use self::rand::Rng;
 
 
 //finish this
-pub fn reproduce(selector: &Box<Selector>, pop: Vec<Graph>, crossmut: &Vec<Box<GeneticOperator>>, operators: &Vec<Operator>) -> Vec<Graph>
+pub fn reproduce(selector: &Box<Selector>, pop: Vec<Graph>, crossmut: &Vec<Box<GeneticOperator>>, operators: &mut OperatorMap) -> Vec<Graph>
 {
 
 

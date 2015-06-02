@@ -1,47 +1,43 @@
+extern crate rand;
+
+
 use std::fmt;
+use std::collections::HashMap;
+use self::rand::distributions::{IndependentSample, Range};
+use super::GlobalState;
+use super::LocalState;
+use rand::Rng;
+use std::sync::{Arc, Mutex};
 
-pub struct Operator {
-    fptr_index: usize,
+//#[derive(Clone,Debug)]
+pub struct Operator
+{
+	op: fn(&mut Arc<Mutex<GlobalState>>, &mut LocalState) -> bool,
+	parts: Option<Vec<[u64;2]>>,
+	sucessors: u8
 
-    //fix
-    sucessors: u8,
 
 }
 
-
-
-pub trait OperatorTrait {
-
-
-
-   
-   // Static method signature; `Self` refers to the implementor type
-   fn init(&mut self);
-
-   // Instance methods, only signatures
-   fn op(&mut self, usize) -> bool;
-
-   fn fitness(&mut self) -> u32;
-
-   fn get_random(&mut self) -> u32;
-
-   fn secondary(&mut self,usize,&mut Vec<Option<(u32, u32)>>) -> (u32,bool);
-
-   fn clone(& self) -> Box<OperatorTrait + Send>;
-
-   fn init_state(& self) -> bool;
-}
-
-
-impl fmt::Debug for Operator
+impl Operator
 {
 
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result
- 	{
-   			 write!(f, "Function Pointer :(ref: {0}, sucessors: {1})",self.fptr_index,self.sucessors)
-  	}
+	pub fn new(op:  fn(&mut Arc<Mutex<GlobalState>>, &mut LocalState) -> bool, parts:Option<Vec<[u64;2]>>, sucessors: u8) -> Operator
+	{
+		Operator{ op: op, parts: parts, sucessors: sucessors}
 
+	}
+	pub fn get_sucessors(&self) -> u8
+	{
+		self.sucessors
 
+	}
+	pub fn call(&self, global: &mut Arc<Mutex<GlobalState>>, local: &mut LocalState)->bool
+	{
+		let func= self.op;
+		func(global,local)
+
+	}
 
 
 }
@@ -50,48 +46,56 @@ impl Clone for Operator
 {
 
 	fn clone(&self) -> Operator
- 	{
-   			 Operator{fptr_index: self.fptr_index, sucessors: self.sucessors}
-  	}
+	{
+		Operator{op: self.op, parts: self.parts.clone(),sucessors: self.sucessors}
 
+	}
 
+}
 
+//#[derive(Debug,Clone)]
+pub type OperatorMap = HashMap<[u64;2],Operator>;
+
+pub trait RandomKey
+{
+	fn random_key<R: Rng>(&self,rng: &mut R) ->[u64;2];
 
 }
 
 
-
-
-impl Operator
+impl RandomKey for OperatorMap
 {
 
-	pub fn new(fptr:usize,  sucessors: u8) -> Operator
+	fn random_key<R: Rng>(&self,rng: &mut R) ->[u64;2]
 	{
-		Operator{fptr_index: fptr, sucessors: sucessors}
+
+
+		let operator_count = Range::new(0, self.len());
+		let rand = operator_count.ind_sample(rng);
+		let mut key;
+		let mut x =0;
+		for i in self.keys()
+		{
+			if x==rand
+			{
+				key=*i;
+				return key;
+			}
+
+			x+=1;
+		}
+		panic!("failed to get a random key");
+
 
 	}
-	
-	pub fn call(&self) -> usize
-	{
-		self.fptr_index
-
-
-	}
-
-	pub fn get_refnum(&self) -> usize
-	{
-		self.fptr_index
-
-	}
-
-	pub fn get_sucessors(&self) -> u8
-	{
-		self.sucessors
-
-	}
-
-	
 
 }
+
+
+
+
+
+
+
 
 

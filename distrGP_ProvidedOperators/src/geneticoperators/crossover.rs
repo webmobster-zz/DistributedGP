@@ -3,7 +3,7 @@ extern crate distrGP_Generator;
 
 use self::distrGP_Generator::Graph;
 use self::distrGP_Generator::Node;
-use self::distrGP_Generator::Operator;
+use self::distrGP_Generator::OperatorMap;
 use self::distrGP_Generator::GeneticOperator;
 
 
@@ -46,7 +46,7 @@ impl GeneticOperator for TreeCross
 	
 	}
 
-	fn operate(&self,  _: &Vec<Operator>,selector_closure: &Box<Fn() -> Graph>) -> Vec<Graph>
+	fn operate(&self,  map: &mut OperatorMap,selector_closure: &Box<Fn() -> Graph>) -> Vec<Graph>
 	{
 		let mut working_graph_parent_one= selector_closure();
 		let working_graph_parent_two= selector_closure();
@@ -129,7 +129,7 @@ impl GeneticOperator for TreeCross
 		
 
 			//THE END LOGIC should be fixed
-			if op.get_sucessors() ==2
+			if map[&op].get_sucessors() ==2
 			{
 					assert!(suc1.is_some() && suc2.is_some(),"Invalid Node");
 
@@ -178,7 +178,7 @@ impl GeneticOperator for TreeCross
 
 
 			}
-			else if op.get_sucessors() ==1
+			else if map[&op].get_sucessors() ==1
 			{
 					assert!(suc1.is_some() && suc2.is_none(),"Invalid Node");
 
@@ -198,7 +198,7 @@ impl GeneticOperator for TreeCross
 
 
 			}
-			else if op.get_sucessors() ==0
+			else if map[&op].get_sucessors() ==0
 			{
 				assert!(suc1.is_none() && suc2.is_none(),"Invalid Node");
 
@@ -269,7 +269,7 @@ impl GeneticOperator for FlatCross
 	
 	}
 
-	fn operate(&self,  _: &Vec<Operator>,selector_closure: &Box<Fn() -> Graph>) -> Vec<Graph>
+	fn operate(&self,  _: &mut OperatorMap,selector_closure: &Box<Fn() -> Graph>) -> Vec<Graph>
 	{
 
 		let mut working_graph_parent_one= selector_closure();
@@ -280,9 +280,6 @@ impl GeneticOperator for FlatCross
 		//fast but bad
 		let mut rng = rand::weak_rng();
 	
-
-		//fast but bad
-		let mut rng = rand::weak_rng();
 
 		//fix bad OO practices, getters and setters etc
 		let graph_length_one = Range::new(0, working_graph_parent_one.get_size());
