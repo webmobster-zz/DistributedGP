@@ -1,15 +1,158 @@
-#[derive(Clone)]
-pub struct GlobalState
+use std::sync::mpsc::channel;
+use std::sync::mpsc::{Sender, Receiver};
+use std::sync::mpsc;
+use std::sync::{Arc, Mutex};
+
+use super::Graph;
+
+
+
+use std::cmp::Ordering;
+use std::cmp::Ordering::{Less,Equal,Greater};
+
+pub enum StateIO
 {
-	pub vec: Vec<u64>,
-	pub vec_pointer: usize
+	Start,
+	Data(u64),
+	Fitness(u64),
+	SizeGraph(u64),
+	SizeVec(u64),
+	Done
+
 }
 
+pub struct GlobalState
+{
+	//Persistant after evaluation and after selection and mutable by multiple threads
+	pub vec: Arc<Mutex<Vec<u64>>>,
+	pub graph: Arc<Mutex<Graph>>,
+	pub life: Option<Arc<Mutex<u64>>>,
+
+	//mutable by multiple threads
+	pub input: Option<Arc<Mutex<Receiver<StateIO>>>>,
+	pub output: Option<Arc<Mutex<Sender<StateIO>>>>,
+	pub thread_count: Option<Arc<Mutex<u64>>>,
+
+
+	//Persistant after evaluation but not after selection
+	pub fitness: Option<u64>,
+	
+}
+
+impl Clone for GlobalState
+{
+	fn clone(&self) ->GlobalState
+	{
+		GlobalState{vec: self.vec.clone(), input: self.input.clone(), output: self.output.clone(), life: self.life.clone(),graph: self.graph.clone(),thread_count: self.thread_count.clone(),fitness: self.fitness}
+	}
+
+}
+
+impl GlobalState
+{
+
+
+	pub fn new(memory: Vec<u64>, graph: Graph) -> GlobalState
+	{
+
+		GlobalState{vec: Arc::new(Mutex::new(memory)), input: None, output: None, life: None,graph:  Arc::new(Mutex::new(graph)), fitness: None, thread_count: None}
+
+	}
+	//drops input, output and threadcount
+	pub fn unique_copy(&mut self) -> GlobalState
+	{
+
+		let veclock =self.vec.lock().unwrap();
+		let graphlock =self.graph.lock().unwrap();
+		let life =self.life.clone().unwrap();
+		let lifelock= life.lock().unwrap();
+
+		GlobalState{vec: Arc::new(Mutex::new(veclock.clone())), input: None, output: None, life: Some(Arc::new(Mutex::new(lifelock.clone()))),graph:  Arc::new(Mutex::new(graphlock.clone())), thread_count: None,fitness: self.fitness}
+	}
+
+	pub fn initialize(&mut self,life: u64) ->(Sender<StateIO>,Receiver<StateIO>)
+	{
+
+		let (input_tx,input_rx) = channel();
+		let (output_tx,output_rx) = channel();
+		self.input= Some(Arc::new(Mutex::new(input_rx)));
+		self.output= Some(Arc::new(Mutex::new(output_tx)));
+		self.life=Some(Arc::new(Mutex::new(life)));
+		self.thread_count = Some(Arc::new(Mutex::new(0)));
+		self.fitness=None;
+		(input_tx,output_rx)
+
+	}
+	pub fn unique_graphvec_copy(&self) -> (Graph,Vec<u64>)
+	{
+		let veclock =self.vec.lock().unwrap();
+		let graphlock =self.graph.lock().unwrap();
+		(graphlock.clone(),veclock.clone())
+
+	}
+}
+
+
+//These are all to allow sorting based on fitness
+
+//This is probably a bad idea
+impl Eq for GlobalState
+{
+
+}
+
+impl PartialOrd for GlobalState
+{
+
+	fn partial_cmp(&self, other: &GlobalState) -> Option<Ordering>
+	{
+		if self.fitness.unwrap() < other.fitness.unwrap() { Some(Less) }
+    		else if self.fitness.unwrap() > other.fitness.unwrap() { Some(Greater) }
+    		else { Some(Equal) }
+
+	}
+
+
+}
+
+
+
+impl PartialEq for GlobalState
+{
+
+	fn  eq(&self, other: &GlobalState) -> bool
+	{
+		if self.fitness.unwrap() == other.fitness.unwrap() { true }
+    		else {false}
+
+	}
+
+
+}
+
+impl Ord for GlobalState
+{
+
+	fn cmp(&self, other: &GlobalState) -> Ordering
+	{
+		if self.fitness.unwrap() < other.fitness.unwrap() { Less }
+    		else if self.fitness.unwrap() > other.fitness.unwrap() { Greater }
+    		else { Equal }
+
+	}
+
+
+}
+
+#[derive(Copy)]
 pub struct LocalState
 {
 	pub node: Option<usize>,
 	pub array: [u64;1000],
-	pub local_pointer: usize
+
+	pub vec_pointer: usize,
+	pub array_pointer: usize,
+	pub general_pointer: u64
 
 	
 }
@@ -19,9 +162,19 @@ impl LocalState
 	pub fn new() -> LocalState
 	{
 
-		LocalState{node: Some(0), array: [0;1000],local_pointer: 0}
+		LocalState{node: Some(0), array: [0;1000],array_pointer: 0, general_pointer: 0, vec_pointer: 0}
 
 	}
 
 }
+
+impl Clone for LocalState
+{
+	fn clone(&self) -> LocalState
+	{
+		LocalState{node: self.node, array: self.array ,array_pointer: self.array_pointer, general_pointer: self.general_pointer, vec_pointer: self.vec_pointer}
+	}
+
+}
+
 

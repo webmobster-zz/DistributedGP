@@ -3,79 +3,18 @@
 extern crate rand; 
 
 
-use  std::cmp::min;
-use  std::cmp::max;
-
-use std::cmp::Ordering;
-use std::cmp::Ordering::{Less,Equal,Greater};
+use std::cmp::min;
+use std::cmp::max;
 
 
 #[derive(Debug,Clone)]
 pub struct Graph
 {
-	     list: Vec<Node>,
-	     fitness: Option<u32>,
-	     life: Option<u32>,
-	     perfect: Option<bool>,
+	     list: Vec<Node>
 }
 
 #[derive(Clone,Debug)]
 pub struct Node( pub [u64;2],pub Option<usize>,pub Option<usize>);
-
-
-
-//These are all to allow sorting based on fitness
-
-//This is probably a bad idea
-impl Eq for Graph
-{
-
-}
-
-impl PartialOrd for Graph
-{
-
-	fn partial_cmp(&self, other: &Graph) -> Option<Ordering>
-	{
-		if self.fitness.unwrap() < other.fitness.unwrap() { Some(Less) }
-    		else if self.fitness.unwrap() > other.fitness.unwrap() { Some(Greater) }
-    		else { Some(Equal) }
-
-	}
-
-
-}
-
-
-
-impl PartialEq for Graph
-{
-
-	fn  eq(&self, other: &Graph) -> bool
-	{
-		if self.fitness.unwrap() == other.fitness.unwrap() { true }
-    		else {false}
-
-	}
-
-
-}
-
-impl Ord for Graph
-{
-
-	fn cmp(&self, other: &Graph) -> Ordering
-	{
-		if self.fitness.unwrap() < other.fitness.unwrap() { Less }
-    		else if self.fitness.unwrap() > other.fitness.unwrap() { Greater }
-    		else { Equal }
-
-	}
-
-
-}
-
-
 
 
 
@@ -87,7 +26,7 @@ impl Graph
 
 	pub fn empty_graph() -> Graph
 	{
-		Graph{list: Vec::new(), fitness: None, life: None,perfect: None}
+		Graph{list: Vec::new()}
 	}
 
 	
@@ -122,39 +61,6 @@ impl Graph
 			Node(ref op, _,_) => op,
 		};
 		op.clone()
-
-	}
-
-	pub fn set_fitness(&mut self, fitness: u32)
-	{
-		self.fitness = Some(fitness);
-
-	}
-	pub fn get_fitness(& self) -> u32
-	{
-		self.fitness.unwrap()
-
-	}
-
-	pub fn set_perfect(&mut self, perfect: bool)
-	{
-		self.perfect = Some(perfect);
-
-	}
-	pub fn get_perfect(& self) -> bool
-	{
-		self.perfect.unwrap()
-
-	}
-
-	pub fn set_life(&mut self, life: u32)
-	{
-		self.life = Some(life);
-
-	}
-	pub fn get_life(& self) -> Option<u32>
-	{
-		self.life
 
 	}
 

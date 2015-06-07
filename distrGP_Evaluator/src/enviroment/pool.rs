@@ -30,17 +30,16 @@ use std::thread::JoinGuard;
 
 pub struct GreenThreadData<'pool>
 {
-	global_state: Arc<Mutex<GlobalState>>,
-	local_state: LocalState,
-	graph: &'pool Graph,
+	pub global_state: GlobalState,
+	pub local_state: LocalState,
 	map: &'pool OperatorMap
 }
 
 impl<'pool> GreenThreadData<'pool>
 {
-	pub fn new(global_state: GlobalState,local_state: LocalState, graph: &'pool Graph,map: &'pool OperatorMap ) -> GreenThreadData<'pool>
+	pub fn new(global_state: GlobalState,local_state: LocalState, map: &'pool OperatorMap ) -> GreenThreadData<'pool>
 	{
-		GreenThreadData{global_state: Arc::new(Mutex::new(global_state)), local_state: local_state, graph: graph, map: map}
+		GreenThreadData{global_state: global_state, local_state: local_state, map: map}
 
 	}
 
@@ -122,24 +121,39 @@ fn spawn_in_pool<'pool>(jobs: Arc<Mutex<Receiver<(GreenThreadData<'pool>,Arc<Mut
 fn step<'pool>(mut state: GreenThreadData<'pool>, pool: Arc<Mutex<ThreadPool<'pool>>>)
 {
 
-    
-	let (suc1,suc2) = state.graph.get_sucessor_index(state.local_state.node.unwrap());
+    	let (mut suc1,mut suc2);
+	let mut operator;
+	{
+		let lock = state.global_state.graph.lock().unwrap();
+		let (x,y) = lock.get_sucessor_index(state.local_state.node.unwrap());
+		operator= lock.get_operator(state.local_state.node.unwrap());
+		suc1 =x; suc2 =y;
 
 
+	}
 
-
-		
-
-	
-	let sucessor_bool =state.map.get(&state.graph.get_operator(state.local_state.node.unwrap())).unwrap().call(&mut state.global_state,&mut state.local_state);
-
-
+	let sucessor_bool =state.map.get(&operator).unwrap().call(&mut state.global_state,&mut state.local_state);
 
 	let index;
 
 	if suc1 == None
 	{
 
+		let thread = state.global_state.thread_count.unwrap();
+		let mut threadlock = thread.lock().unwrap();
+		assert!(*threadlock >= 1);
+		if *threadlock == 1
+		{
+			
+			
+
+		}
+		else
+		{
+			*threadlock = *threadlock - 1;
+
+		}
+		
 		return;
 	}
 
@@ -158,9 +172,11 @@ fn step<'pool>(mut state: GreenThreadData<'pool>, pool: Arc<Mutex<ThreadPool<'po
 
 
 	//This has to happen otherwise the strong refs to pool drops to 1 and the parent thread continues into an unknown state
-	let lock= pool.lock().unwrap();
-	lock.execute(state,pool.clone());
-    
+	{
+		let lock= pool.lock().unwrap();
+		lock.execute(state,pool.clone());
+	}
+	    
 			
 
 

@@ -13,6 +13,8 @@ pub use self::operator::Operator;
 pub use self::operator::RandomKey;
 pub use self::state::GlobalState;
 pub use self::state::LocalState;
+pub use self::individualcomm::IndividualComm;
+pub use self::state::StateIO;
 
 
 use self::rand::Rng;
@@ -24,6 +26,7 @@ mod operator;
 mod state;
 mod selectortrait;
 mod reproduce;
+mod individualcomm;
 
 
 mod geneticoperator;
@@ -32,14 +35,12 @@ mod geneticoperator;
 pub struct Generator
 {
 	popcount: u32,
-	graph_list: Vec<Graph>,
+	graph_list: Vec<GlobalState>,
 	operatorpointers: OperatorMap,
 	crossmut: Vec<Box<GeneticOperator>>,
 	grow_operator: Box<GeneticOperator>,
-	//evaluation_settings: EvaluationSettings,
-
 	selector: Box<selectortrait::Selector>,
-	life: u32,
+	life: u64,
 	population_UUID: [u64; 2]
 
 
@@ -51,7 +52,7 @@ pub struct Generator
 
 impl Generator
 {
-	pub fn init(popcount: u32, operators: OperatorMap,selector: Box<Selector>, crossmut:Vec<Box<GeneticOperator>>,grow_operator: Box<GeneticOperator>, life: u32) -> Generator
+	pub fn init(popcount: u32, operators: OperatorMap,selector: Box<Selector>, crossmut:Vec<Box<GeneticOperator>>,grow_operator: Box<GeneticOperator>,life: u64) -> Generator
 	{
 		
 		let graph = Vec::with_capacity(popcount as usize);
@@ -65,7 +66,6 @@ impl Generator
 				operatorpointers : operators, 
 				crossmut: crossmut,
 				grow_operator: grow_operator,
-
 				selector: selector,
 
 				life: life,
@@ -95,6 +95,22 @@ impl Generator
 		}
 	}
 
+	pub fn initialize_graphs( &mut self) -> Vec<IndividualComm>
+	{
+
+		let mut comms: Vec<IndividualComm> = Vec::new();
+		for i in 0..self.graph_list.len()
+		{	
+			
+			let (tx,rx) = self.graph_list[i].initialize(self.life);
+			comms.push(IndividualComm::new(tx,rx));
+
+		}
+		comms
+
+
+	}
+
 	//a bit hacky
 	pub fn generate_graphs( &mut self)
 	{
@@ -107,8 +123,8 @@ impl Generator
 			for x in new_graph
 			{
 				let mut new_graph = x.clone();
-				new_graph.set_life(self.life);
-				self.graph_list.push(new_graph);
+				let (graph,memory) = new_graph;
+				self.graph_list.push(GlobalState::new(memory,graph));
 				if self.graph_list.len() == self.popcount as usize
 				{
 						break;
@@ -130,21 +146,21 @@ impl Generator
 	}
 
 
-	pub fn get_graph_list(&self) -> Vec<Graph>
+	pub fn get_graph_list(&self) -> Vec<GlobalState>
 	{
 		self.graph_list.clone()
 		
 	}
 
 
-	pub fn get_graph(&self, index: usize) -> Graph
+	pub fn get_graph(&self, index: usize) -> GlobalState
 	{
 		self.graph_list[index].clone()
 		
 	}
 
 		
-	pub fn set_graphs(&mut self, graphs: Vec< Graph>)
+	pub fn set_graphs(&mut self, graphs: Vec< GlobalState>)
 	{
 
 		self.graph_list=graphs;

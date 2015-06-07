@@ -1,9 +1,9 @@
-use super::graph::Graph;
-
+use super::Graph;
+use super::GlobalState;
 
 pub trait Selector
 {
-	fn select(&self, pop: Vec<Graph>) -> Box<Fn() -> Graph>;
+	fn select(&self, pop: Vec<GlobalState> ) -> Box<Fn() -> (Graph,Vec<u64>)>;
 	fn get_copy(&self) -> Box<Selector>;
 }
 

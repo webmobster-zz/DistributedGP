@@ -5,40 +5,40 @@ extern crate distrGP_Generator;
 
 
 use std::sync::mpsc::sync_channel;
-use std::sync::mpsc::channel;
 use std::thread;
 use std::sync::mpsc::SyncSender;
 use std::sync::mpsc::Receiver;
+use std::sync::mpsc::Sender;
 use std::ptr;
-use std::io;
-use std::fs::File;
-use std::path::Path;
-use std::fs;
+
 
 
 use super::enviroment;
 
 use self::distrGP_Generator::Generator;
-use self::distrGP_Generator::Graph;
-use self::distrGP_Generator::Operator;
+use self::distrGP_Generator::IndividualComm;
 use self::distrGP_Generator::OperatorMap;
-use self::distrGP_Generator::Selector;
-use self::distrGP_Generator::GeneticOperator;
+use self::distrGP_Generator::GlobalState;
 
+pub enum FitnessMessage
+{
+	Ready,
+	PopVec(Vec<IndividualComm>),
+	Finish
 
+}
 
 pub enum ServerMessage
 {
 	Start,
-	PopVec(Vec<Graph>),
+	PopVec(Vec<GlobalState>),
 	OperatorMap(OperatorMap),
-	
 	Repetitions(u32),
 	EndPop
 
 }
 
-pub fn init(mut generator: Generator, numclients: u32)
+pub fn init(mut generator: Generator, numclients: u32, sender: Sender<FitnessMessage>, receiver: Receiver<FitnessMessage>)
 {
 
 
@@ -65,6 +65,23 @@ pub fn init(mut generator: Generator, numclients: u32)
 
 	loop
 	{
+
+		let comms= generator.initialize_graphs();
+		sender.send(FitnessMessage::PopVec(comms));
+
+		println!("waiting for fitness to be ready clients");
+		match receiver.recv()
+		{
+			Ok(x) => {
+				 	match x
+					{
+						FitnessMessage::Ready => (),
+						_ => panic!("Invalid Message")
+					}
+				},
+			_ => panic!("Dropped receiver")
+		}
+		
 		//start clients
 		start(&send);
 
@@ -83,9 +100,8 @@ pub fn init(mut generator: Generator, numclients: u32)
 
 		let mut graphs = generator.get_graph_list();
 
-		//remove later
-		graphs.sort();
 		generator.reproduce();
+		sender.send(FitnessMessage::Finish);
 
 	}
 
@@ -97,7 +113,7 @@ pub fn init(mut generator: Generator, numclients: u32)
 }
 
 
-fn get_scores(receiver: &Receiver<ServerMessage>, num_clients: u32) -> Vec<Graph>
+fn get_scores(receiver: &Receiver<ServerMessage>, num_clients: u32) -> Vec<GlobalState>
 {
 	
 
@@ -184,7 +200,7 @@ fn send_pop(generator: &Generator, send: &Vec<SyncSender<ServerMessage>>)
 
 	//split the population up equally amont the size of enviroments
 
-	let mut index: Vec<Vec<Graph>> = Vec::new();
+	let mut index: Vec<Vec<GlobalState>> = Vec::new();
 	let length = current.len();
 	
 	let mut lastsplit =0;
@@ -192,7 +208,7 @@ fn send_pop(generator: &Generator, send: &Vec<SyncSender<ServerMessage>>)
 	{
 
 		let split = ((i as f32/send.len() as f32) * length as f32) as usize;
-		let next: Vec<Graph> = current.quick_hack_split( split -lastsplit );
+		let next: Vec<GlobalState> = current.quick_hack_split( split -lastsplit );
 		index.push(current);
 
 		lastsplit=split;

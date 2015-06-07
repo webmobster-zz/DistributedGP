@@ -12,22 +12,71 @@ pub fn load_operators(map: &mut OperatorMap)
 {
 
 	let mut rng = rand::thread_rng();
-	map.insert([rng.gen::<u64>(); 2],Operator::new(incr_local_pointer,None,1));
+	map.insert([rng.gen::<u64>(); 2],Operator::new(incr_local_pointer,None,2));
+	map.insert([rng.gen::<u64>(); 2],Operator::new(decr_local_pointer,None,2));
+	//map.insert([rng.gen::<u64>(); 2],Operator::new(get_input,None,1));
+	//map.insert([rng.gen::<u64>(); 2],Operator::new(send_output,None,1));
+
 	map.insert([rng.gen::<u64>(); 2],Operator::new(end,None,0));
 
 }
-
-fn incr_local_pointer(global: &mut Arc<Mutex<GlobalState>>, local: &mut LocalState) -> bool
+/*
+fn get_input(global: &mut Arc<Mutex<GlobalState>>, local: &mut LocalState) -> bool
 {
-	local.local_pointer+=1;
-	//println!("lolol");
-	true
+	let lock = global.lock().unwrap();
+	match lock.input.try_recv()
+	{
+		Ok(x) => {local.general_pointer=x;true}
+		Err(e) => {false}
+	}	
 
 }
-fn end(global: &mut Arc<Mutex<GlobalState>>, local: &mut LocalState) -> bool
-{
-	//println!("woop");
-	true
 
+fn send_output(global: &mut Arc<Mutex<GlobalState>>, local: &mut LocalState) -> bool
+{
+	let lock = global.lock().unwrap();
+	match lock.output.send(local.general_pointer)
+	{
+		Ok(_) => {true}
+		Err(_) => {false}
+	}
+
+}
+
+
+*/
+
+fn incr_local_pointer(global: &mut GlobalState, local: &mut LocalState) -> bool
+{
+	if local.array_pointer < local.array.len() -1
+	{
+		local.array_pointer+=1;
+		true
+	}
+	else
+	{
+		false
+	}
+
+}
+
+fn decr_local_pointer(global: &mut GlobalState, local: &mut LocalState) -> bool
+{
+
+	if local.array_pointer < 0
+	{
+		local.array_pointer-=1;
+		true
+	}
+	else
+	{
+		false
+	}
+}
+
+
+fn end(global: &mut GlobalState, local: &mut LocalState) -> bool
+{
+	true
 }
 

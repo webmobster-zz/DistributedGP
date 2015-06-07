@@ -12,7 +12,7 @@ use std::sync::{Arc, Mutex};
 //#[derive(Clone,Debug)]
 pub struct Operator
 {
-	op: fn(&mut Arc<Mutex<GlobalState>>, &mut LocalState) -> bool,
+	op: fn(&mut GlobalState, &mut LocalState) -> bool,
 	parts: Option<Vec<[u64;2]>>,
 	sucessors: u8
 
@@ -22,7 +22,7 @@ pub struct Operator
 impl Operator
 {
 
-	pub fn new(op:  fn(&mut Arc<Mutex<GlobalState>>, &mut LocalState) -> bool, parts:Option<Vec<[u64;2]>>, sucessors: u8) -> Operator
+	pub fn new(op:  fn(&mut GlobalState, &mut LocalState) -> bool, parts:Option<Vec<[u64;2]>>, sucessors: u8) -> Operator
 	{
 		Operator{ op: op, parts: parts, sucessors: sucessors}
 
@@ -32,7 +32,7 @@ impl Operator
 		self.sucessors
 
 	}
-	pub fn call(&self, global: &mut Arc<Mutex<GlobalState>>, local: &mut LocalState)->bool
+	pub fn call(&self, global: &mut GlobalState, local: &mut LocalState)->bool
 	{
 		let func= self.op;
 		func(global,local)

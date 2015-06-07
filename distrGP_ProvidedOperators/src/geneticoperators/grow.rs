@@ -48,7 +48,7 @@ impl GeneticOperator for StandardGrow
 	}
 
 
-	fn operate(&self, map: &mut OperatorMap, _: &Box<Fn() -> Graph>) -> Vec<Graph>
+	fn operate(&self, map: &mut OperatorMap, _: &Box<Fn() -> (Graph,Vec<u64>)>) -> Vec<(Graph,Vec<u64>)>
 	{
 
 		if map.len() ==0
@@ -217,7 +217,7 @@ impl GeneticOperator for StandardGrow
 			}
 
 		}
-		vec!(new_graph)
+		vec!((new_graph,Vec::new()))
 
 	}
 }

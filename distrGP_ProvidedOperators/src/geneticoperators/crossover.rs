@@ -46,10 +46,10 @@ impl GeneticOperator for TreeCross
 	
 	}
 
-	fn operate(&self,  map: &mut OperatorMap,selector_closure: &Box<Fn() -> Graph>) -> Vec<Graph>
+	fn operate(&self,  map: &mut OperatorMap,selector_closure: &Box<Fn() -> (Graph,Vec<u64>)>) -> Vec<(Graph,Vec<u64>)>
 	{
-		let mut working_graph_parent_one= selector_closure();
-		let working_graph_parent_two= selector_closure();
+		let (mut working_graph_parent_one,vec)= selector_closure();
+		let (working_graph_parent_two,_)= selector_closure();
 
 	
 
@@ -225,7 +225,7 @@ impl GeneticOperator for TreeCross
 
 		let working_graph=working_graph_parent_one;
 
-		vec!(working_graph)
+		vec!((working_graph,vec))
 		
 
 	}
@@ -269,12 +269,11 @@ impl GeneticOperator for FlatCross
 	
 	}
 
-	fn operate(&self,  _: &mut OperatorMap,selector_closure: &Box<Fn() -> Graph>) -> Vec<Graph>
+	fn operate(&self,  _: &mut OperatorMap,selector_closure: &Box<Fn() -> (Graph,Vec<u64>)>) -> Vec<(Graph,Vec<u64>)>
 	{
 
-		let mut working_graph_parent_one= selector_closure();
-		let working_graph_parent_two= selector_closure();
-
+		let (mut working_graph_parent_one,vec)= selector_closure();
+		let (working_graph_parent_two,_)= selector_closure();
 	
 
 		//fast but bad
@@ -296,7 +295,7 @@ impl GeneticOperator for FlatCross
 
 
 
-		vec!(working_graph_parent_one)
+		vec!((working_graph_parent_one,vec))
 
 	}
 }

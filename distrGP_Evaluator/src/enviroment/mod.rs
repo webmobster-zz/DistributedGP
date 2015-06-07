@@ -10,12 +10,14 @@ use self::distrGP_Generator::OperatorMap;
 use self::distrGP_Generator::Operator;
 use self::distrGP_Generator::GlobalState;
 use self::distrGP_Generator::LocalState;
+use self::distrGP_Generator::StateIO;
 use self::pool::ThreadPool;
 use self::pool::GreenThreadData;
 
 use std::sync::mpsc::SyncSender;
 use std::sync::mpsc::Receiver;
 use std::sync::{Arc, Mutex};
+use std::thread;
 
 mod pool;
 
@@ -105,7 +107,7 @@ pub fn init(send: SyncSender<ServerMessage>, receive: Receiver<ServerMessage>)
 	
 }
 #[allow(unused_mut)]
-fn run(pop: &mut Vec<Graph>, map: &OperatorMap,thread_count: u32)
+fn run(pop: &mut Vec<GlobalState>, map: &OperatorMap,thread_count: u32)
 {
 
 
@@ -115,10 +117,49 @@ fn run(pop: &mut Vec<Graph>, map: &OperatorMap,thread_count: u32)
 
 		let working_graph = (&mut **pop).get_mut(i).unwrap();
 
-		let (result,perfect) = iterate_over_entity(working_graph, map,thread_count as usize);
+		iterate_over_entity(working_graph, map,thread_count as usize);
 
-		working_graph.set_fitness(result);
-		working_graph.set_perfect(perfect);
+
+			
+
+	}
+
+	for i in 0 .. pop.len()
+	{
+
+		let working_graph = (&mut **pop).get_mut(i).unwrap();
+
+
+		let input = working_graph.input.clone().unwrap();
+		let output = working_graph.output.clone().unwrap();
+
+		let mut inputlock = input.lock().unwrap();
+		let mut outputlock = output.lock().unwrap();
+		let mut graphlock = working_graph.graph.lock().unwrap();
+		let mut veclock = working_graph.vec.lock().unwrap();
+
+
+		outputlock.send(StateIO::Done);		
+		outputlock.send(StateIO::SizeVec(veclock.len() as u64));
+		outputlock.send(StateIO::SizeGraph(graphlock.get_size() as u64));
+		let mut fitness;
+		loop
+		{
+			//clear the channel
+			match inputlock.recv()
+			{
+				Ok(x) => {
+					 	match x
+						{
+							StateIO::Data(_) => (),
+							StateIO::Fitness(f) => {fitness =f; break},
+							_ => panic!("Invalid Message")
+						}
+					},
+				_ => panic!("Dropped receiver")
+			}
+		}
+		working_graph.fitness = Some(fitness);
 
 			
 
@@ -129,14 +170,13 @@ fn run(pop: &mut Vec<Graph>, map: &OperatorMap,thread_count: u32)
 
 //result, life
 //actual method that iterates over an individual
-fn iterate_over_entity(entity: &Graph, map: &OperatorMap, thead_num: usize) -> (u32,bool)
+fn iterate_over_entity(individual: &mut GlobalState, map: &OperatorMap, thead_num: usize)
 {
 
 
-	let initial_global_state = GlobalState{vec: vec!(1), vec_pointer: 5};
 	let initial_local_state = LocalState::new();
 
-
+	
 
 
 	
@@ -144,25 +184,23 @@ fn iterate_over_entity(entity: &Graph, map: &OperatorMap, thead_num: usize) -> (
 
 
 
-	let green= GreenThreadData::new(initial_global_state.clone(),initial_local_state, entity,map);
-	    
+	let green= GreenThreadData::new(individual.clone(),initial_local_state,map);
+
+	{
+		let thread = individual.thread_count.clone().unwrap();
+		let mut threadlock = thread.lock().unwrap();
+		assert!(*threadlock == 0);
+	
+		*threadlock =1;	    
+	}
 	pool.lock().unwrap().execute(green,pool.clone());
 
 	//Hacky
 	while alloc::arc::strong_count(&pool) > 1
 	{
-		//std::thread::sleep_ms(100);
+		thread::sleep_ms(100);
 	}
 
-
-	let mut life = entity.get_life().unwrap();
-
-
-		
-
-	let mut index: usize = 0;
-		
- 	(8,true)
 
 }
 

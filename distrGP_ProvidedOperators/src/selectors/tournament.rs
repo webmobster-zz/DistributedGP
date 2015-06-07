@@ -3,6 +3,7 @@ extern crate distrGP_Generator;
 
 use self::distrGP_Generator::Graph;
 use self::distrGP_Generator::Selector;
+use self::distrGP_Generator::GlobalState;
 
 use self::rand::distributions::{IndependentSample, Range};
 
@@ -32,7 +33,7 @@ impl Selector for Tournament
 		Box::new(self.clone()) as Box<Selector>
 	
 	}
-	fn select(&self, pop: Vec<Graph>) -> Box<Fn() -> Graph>
+	fn select(&self, pop: Vec<GlobalState>) -> Box<Fn() -> (Graph,Vec<u64>)>
 	{
 
 		let tournament_size = self.tournament_size;
@@ -46,7 +47,7 @@ impl Selector for Tournament
 
 
 			//inefficient for small tournament sizes
-			let mut tournament_vector = Vec::new();
+			let mut tournament_vector: Vec<GlobalState>  = Vec::new();
 
 			for _ in 0 .. tournament_size
 			{
@@ -57,7 +58,7 @@ impl Selector for Tournament
 
 		
 		
-			tournament_vector[0].clone()
+			tournament_vector[0].unique_graphvec_copy()
 		})
 
 
