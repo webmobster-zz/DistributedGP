@@ -51,7 +51,7 @@ impl GeneticOperator for TreeCross
 		let (mut working_graph_parent_one,vec)= selector_closure();
 		let (working_graph_parent_two,_)= selector_closure();
 
-	
+		
 
 		//fast but bad
 		let mut rng = rand::weak_rng();
@@ -224,7 +224,6 @@ impl GeneticOperator for TreeCross
 		}
 
 		let working_graph=working_graph_parent_one;
-
 		vec!((working_graph,vec))
 		
 

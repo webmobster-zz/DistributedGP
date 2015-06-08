@@ -35,7 +35,7 @@ pub struct GlobalState
 
 
 	//Persistant after evaluation but not after selection
-	pub fitness: Option<u64>,
+	pub fitness: Option<Arc<Mutex<u64>>>,
 	
 }
 
@@ -43,7 +43,7 @@ impl Clone for GlobalState
 {
 	fn clone(&self) ->GlobalState
 	{
-		GlobalState{vec: self.vec.clone(), input: self.input.clone(), output: self.output.clone(), life: self.life.clone(),graph: self.graph.clone(),thread_count: self.thread_count.clone(),fitness: self.fitness}
+		GlobalState{vec: self.vec.clone(), input: self.input.clone(), output: self.output.clone(), life: self.life.clone(),graph: self.graph.clone(),thread_count: self.thread_count.clone(),fitness: self.fitness.clone()}
 	}
 
 }
@@ -67,7 +67,10 @@ impl GlobalState
 		let life =self.life.clone().unwrap();
 		let lifelock= life.lock().unwrap();
 
-		GlobalState{vec: Arc::new(Mutex::new(veclock.clone())), input: None, output: None, life: Some(Arc::new(Mutex::new(lifelock.clone()))),graph:  Arc::new(Mutex::new(graphlock.clone())), thread_count: None,fitness: self.fitness}
+		let fitness =self.fitness.clone().unwrap();
+		let fitnesslock= fitness.lock().unwrap();
+		panic!("Is this used?");
+		GlobalState{vec: Arc::new(Mutex::new(veclock.clone())), input: None, output: None, life: Some(Arc::new(Mutex::new(lifelock.clone()))),graph:  Arc::new(Mutex::new(graphlock.clone())), thread_count: None,fitness: Some(Arc::new(Mutex::new(fitnesslock.clone())))}
 	}
 
 	pub fn initialize(&mut self,life: u64) ->(Sender<StateIO>,Receiver<StateIO>)
@@ -79,7 +82,7 @@ impl GlobalState
 		self.output= Some(Arc::new(Mutex::new(output_tx)));
 		self.life=Some(Arc::new(Mutex::new(life)));
 		self.thread_count = Some(Arc::new(Mutex::new(0)));
-		self.fitness=None;
+		self.fitness=Some(Arc::new(Mutex::new(0)));
 		(input_tx,output_rx)
 
 	}
@@ -96,6 +99,9 @@ impl GlobalState
 //These are all to allow sorting based on fitness
 
 //This is probably a bad idea
+
+
+//Need to remeber to not deadlock if self and other are the same
 impl Eq for GlobalState
 {
 
@@ -106,8 +112,20 @@ impl PartialOrd for GlobalState
 
 	fn partial_cmp(&self, other: &GlobalState) -> Option<Ordering>
 	{
-		if self.fitness.unwrap() < other.fitness.unwrap() { Some(Less) }
-    		else if self.fitness.unwrap() > other.fitness.unwrap() { Some(Greater) }
+		let mut lockself: u64;
+		let mut lockother: u64;
+		{
+			let fitness_self = self.fitness.clone().unwrap();
+			lockself =  *fitness_self.lock().unwrap();
+			 
+		}
+		{
+			let fitness_other = other.fitness.clone().unwrap();
+			lockother =  *fitness_other.lock().unwrap();
+		}
+
+		if lockself < lockother { Some(Less) }
+    		else if lockself > lockother { Some(Greater) }
     		else { Some(Equal) }
 
 	}
@@ -122,7 +140,19 @@ impl PartialEq for GlobalState
 
 	fn  eq(&self, other: &GlobalState) -> bool
 	{
-		if self.fitness.unwrap() == other.fitness.unwrap() { true }
+		let mut lockself: u64;
+		let mut lockother: u64;
+		{
+			let fitness_self = self.fitness.clone().unwrap();
+			lockself =  *fitness_self.lock().unwrap();
+			 
+		}
+		{
+			let fitness_other = other.fitness.clone().unwrap();
+			lockother =  *fitness_other.lock().unwrap();
+		}
+
+		if lockself == lockother { true }
     		else {false}
 
 	}
@@ -135,8 +165,22 @@ impl Ord for GlobalState
 
 	fn cmp(&self, other: &GlobalState) -> Ordering
 	{
-		if self.fitness.unwrap() < other.fitness.unwrap() { Less }
-    		else if self.fitness.unwrap() > other.fitness.unwrap() { Greater }
+
+
+		let mut lockself: u64;
+		let mut lockother: u64;
+		{
+			let fitness_self = self.fitness.clone().unwrap();
+			lockself =  *fitness_self.lock().unwrap();
+			 
+		}
+		{
+			let fitness_other = other.fitness.clone().unwrap();
+			lockother =  *fitness_other.lock().unwrap();
+		}
+
+		if lockself < lockother { Less }
+    		else if lockself > lockother { Greater }
     		else { Equal }
 
 	}

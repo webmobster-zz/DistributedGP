@@ -13,6 +13,7 @@ license = "Private for now"
 
 [dependencies]
 rand = "0.3.8"
+log = "*"
 
 
 [dependencies.distrGP_Generator]

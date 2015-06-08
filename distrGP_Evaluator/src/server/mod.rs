@@ -53,7 +53,7 @@ pub fn init(mut generator: Generator, numclients: u32, sender: Sender<FitnessMes
 	generator.generate_graphs();
 
 
-	println!("generated graphs");
+	info!("generated graphs");
 	
 
 		
@@ -69,7 +69,7 @@ pub fn init(mut generator: Generator, numclients: u32, sender: Sender<FitnessMes
 		let comms= generator.initialize_graphs();
 		sender.send(FitnessMessage::PopVec(comms));
 
-		println!("waiting for fitness to be ready clients");
+		info!("waiting for fitness to be ready clients");
 		match receiver.recv()
 		{
 			Ok(x) => {
@@ -98,7 +98,7 @@ pub fn init(mut generator: Generator, numclients: u32, sender: Sender<FitnessMes
 
 		generator.set_graphs(updated_pop);
 
-		let mut graphs = generator.get_graph_list();
+
 
 		generator.reproduce();
 		sender.send(FitnessMessage::Finish);

@@ -48,7 +48,6 @@ impl Selector for Tournament
 
 			//inefficient for small tournament sizes
 			let mut tournament_vector: Vec<GlobalState>  = Vec::new();
-
 			for _ in 0 .. tournament_size
 			{
 				tournament_vector.push(pop[graph_count.ind_sample(&mut rng)].clone());
@@ -56,8 +55,6 @@ impl Selector for Tournament
 			}
 			tournament_vector.sort();
 
-		
-		
 			tournament_vector[0].unique_graphvec_copy()
 		})
 

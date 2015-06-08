@@ -88,7 +88,7 @@ pub fn init(send: SyncSender<ServerMessage>, receive: Receiver<ServerMessage>)
 			
 		};	
 
-		println!("env got {} graphs",vec_pops.len());
+		info!("env got {} graphs",vec_pops.len());
 
 		// run all populations and send fitnesses 
 		run(&mut vec_pops,&op_trait, 12);
@@ -123,48 +123,6 @@ fn run(pop: &mut Vec<GlobalState>, map: &OperatorMap,thread_count: u32)
 			
 
 	}
-
-	for i in 0 .. pop.len()
-	{
-
-		let working_graph = (&mut **pop).get_mut(i).unwrap();
-
-
-		let input = working_graph.input.clone().unwrap();
-		let output = working_graph.output.clone().unwrap();
-
-		let mut inputlock = input.lock().unwrap();
-		let mut outputlock = output.lock().unwrap();
-		let mut graphlock = working_graph.graph.lock().unwrap();
-		let mut veclock = working_graph.vec.lock().unwrap();
-
-
-		outputlock.send(StateIO::Done);		
-		outputlock.send(StateIO::SizeVec(veclock.len() as u64));
-		outputlock.send(StateIO::SizeGraph(graphlock.get_size() as u64));
-		let mut fitness;
-		loop
-		{
-			//clear the channel
-			match inputlock.recv()
-			{
-				Ok(x) => {
-					 	match x
-						{
-							StateIO::Data(_) => (),
-							StateIO::Fitness(f) => {fitness =f; break},
-							_ => panic!("Invalid Message")
-						}
-					},
-				_ => panic!("Dropped receiver")
-			}
-		}
-		working_graph.fitness = Some(fitness);
-
-			
-
-	}
-
 }
 
 

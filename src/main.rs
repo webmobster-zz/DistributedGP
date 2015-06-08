@@ -11,11 +11,16 @@
 extern crate distrGP_Evaluator;
 extern crate distrGP_ProvidedOperators;
 extern crate distrGP_Generator;
+extern crate env_logger;
+#[macro_use]
+extern crate log;
 
+use log::{LogRecord, LogLevel, LogMetadata};
 use distrGP_Evaluator::server;
 use distrGP_Generator::GeneticOperator;
 use distrGP_Generator::Generator;
 use distrGP_Generator::StateIO;
+use std::sync::mpsc::TryRecvError;
 use distrGP_ProvidedOperators::geneticoperators::TreeCross;
 use distrGP_ProvidedOperators::geneticoperators::StandardGrow;
 use distrGP_Evaluator::FitnessMessage;
@@ -30,7 +35,9 @@ mod reader;
 fn main()
 {
 
-	println!("init");
+	env_logger::init().unwrap();
+
+	info!("init");
 	//Basic commandline arguments, expand later
 
 
@@ -48,7 +55,7 @@ fn main()
 
 		let generator = Generator::init(
 				
-				problem_description.get_popcount(),
+				500,
 				problem_description.get_operators(),
 
 				problem_description.get_selector(),
@@ -65,7 +72,7 @@ fn main()
 fn fitness(send: Sender<FitnessMessage>, recv: Receiver<FitnessMessage>)
 {
 	loop{
-		let thing =match recv.recv()
+		let mut thing =match recv.recv()
 		{
 			Ok(y) => match y
 				{
@@ -76,12 +83,47 @@ fn fitness(send: Sender<FitnessMessage>, recv: Receiver<FitnessMessage>)
 
 		};
 		send.send(FitnessMessage::Ready);
-
-		for mut i in thing
+		let mut fit_vec: Vec<u64> = std::iter::repeat(1000).take(thing.len()).collect::<Vec<_>>();;
+		let mut z = 0;
+		loop
 		{
-			i.send_byte(StateIO::Fitness(8));
+
+
+			if thing.len() == z
+			{
+				break
+			}
+			for mut i in thing.iter_mut()
+			{
+
+
+
+
+				match i.try_receive_byte()
+				{
+					Ok(x) => match x
+					{
+						//fix
+						StateIO::Done => {i.send_byte(StateIO::Fitness(fit_vec[z])); z+=1;},
+						StateIO::Data(y)=> {fit_vec[z] = 1000 - y; println!("{}",y);},
+						_=>(),
+					},
+					Err(e) => match e
+					{
+						TryRecvError::Empty=> (),
+						TryRecvError::Disconnected => panic!("Dropped Comms")
+
+					}
+				};
+				
+
+				
+			}
+
+
 		}
 		recv.recv();
+		info!("fitness calc done");
 	}
 
 }

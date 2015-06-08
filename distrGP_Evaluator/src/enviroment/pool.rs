@@ -19,10 +19,11 @@ use self::distrGP_Generator::OperatorMap;
 use self::distrGP_Generator::Graph;
 use self::distrGP_Generator::GlobalState;
 use self::distrGP_Generator::LocalState;
+use self::distrGP_Generator::StateIO;
 use std::sync::mpsc::{channel, Sender, Receiver};
 use std::sync::{Arc, Mutex};
 use std::thread;
-
+use std::sync::mpsc::TryRecvError;
 use std::mem;
 use std::thread::JoinGuard;
 
@@ -144,8 +145,44 @@ fn step<'pool>(mut state: GreenThreadData<'pool>, pool: Arc<Mutex<ThreadPool<'po
 		assert!(*threadlock >= 1);
 		if *threadlock == 1
 		{
-			
-			
+	
+			let output = state.global_state.output.clone().unwrap();
+			let outlock = output.lock().unwrap();
+
+			let input = state.global_state.input.clone().unwrap();
+			let inlock = input.lock().unwrap();
+
+			let fitness = state.global_state.fitness.clone().unwrap();
+			let mut fitlock = fitness.lock().unwrap();
+
+
+			match outlock.send(StateIO::Done)
+			{
+				Ok(_) => (),
+				_=> panic!("Dropped Comms")
+
+			}
+
+
+			//clear input
+			loop
+			{
+				match inlock.try_recv()
+				{
+					Ok(x) => match x
+					{
+						StateIO::Data(_) => (),
+						StateIO::Fitness(y) => {*fitlock = y; break},
+						_=> panic!("Invalid Data"),
+					},
+					Err(e) => match e
+					{
+						TryRecvError::Empty=> (),
+						TryRecvError::Disconnected => panic!("Dropped Comms")
+
+					}
+				}	
+			}
 
 		}
 		else

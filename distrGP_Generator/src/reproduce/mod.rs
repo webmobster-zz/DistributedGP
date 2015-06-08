@@ -29,6 +29,7 @@ pub fn reproduce(selector: &Box<Selector>, pop: Vec<GlobalState>, crossmut: &Vec
 
 	while newpop.len() < length
 	{
+
 		let sample = rng.gen::<f32>();
 
 		//unchecked for correctness
@@ -57,8 +58,6 @@ pub fn reproduce(selector: &Box<Selector>, pop: Vec<GlobalState>, crossmut: &Vec
 			}
 		}
 	}
-
-	
 
 
 	if length != newpop.len()
