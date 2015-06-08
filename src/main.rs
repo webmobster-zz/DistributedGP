@@ -16,7 +16,6 @@ extern crate env_logger;
 extern crate log;
 
 use log::{LogRecord, LogLevel, LogMetadata};
-use distrGP_Evaluator::server;
 use distrGP_Generator::GeneticOperator;
 use distrGP_Generator::Generator;
 use distrGP_Generator::StateIO;
@@ -63,7 +62,7 @@ fn main()
 				Box::new(StandardGrow::new(1.0,300)),
 				10000
 				);
-		server::init(generator,4,tx,rxt);
+		distrGP_Evaluator::init(generator,4,tx,rxt);
 	});
 	fitness(txt,rx);
 

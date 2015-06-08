@@ -13,8 +13,9 @@ use std::sync::{Arc, Mutex};
 pub struct Operator
 {
 	op: fn(&mut GlobalState, &mut LocalState) -> bool,
-	parts: Option<Vec<[u64;2]>>,
-	sucessors: u8
+	parts: Option<[u64;2]>,
+	sucessors: u8,
+	cost: u8
 
 
 }
@@ -22,9 +23,9 @@ pub struct Operator
 impl Operator
 {
 
-	pub fn new(op:  fn(&mut GlobalState, &mut LocalState) -> bool, parts:Option<Vec<[u64;2]>>, sucessors: u8) -> Operator
+	pub fn new(op:  fn(&mut GlobalState, &mut LocalState) -> bool, parts:Option<[u64;2]>, sucessors: u8, cost: u8) -> Operator
 	{
-		Operator{ op: op, parts: parts, sucessors: sucessors}
+		Operator{ op: op, parts: parts, sucessors: sucessors, cost: cost}
 
 	}
 	pub fn get_sucessors(&self) -> u8
@@ -47,7 +48,7 @@ impl Clone for Operator
 
 	fn clone(&self) -> Operator
 	{
-		Operator{op: self.op, parts: self.parts.clone(),sucessors: self.sucessors}
+		Operator{op: self.op, parts: self.parts.clone(),sucessors: self.sucessors, cost: self.cost}
 
 	}
 

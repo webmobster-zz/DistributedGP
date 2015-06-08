@@ -153,6 +153,7 @@ impl Generator
 	}
 
 
+
 	pub fn get_graph(&self, index: usize) -> GlobalState
 	{
 		self.graph_list[index].clone()
@@ -172,11 +173,24 @@ impl Generator
 		self.popcount
 		
 	}
+
 	pub fn get_operator_map(&self) -> OperatorMap
 	{
 		self.operatorpointers.clone()
 		
 	}
+	
+	pub fn get_operator_map_ref(&self) -> &OperatorMap
+	{
+		& self.operatorpointers
+		
+	}
+	pub fn get_graph_list_mutref(&mut self) -> &mut Vec<GlobalState>
+	{
+		&mut self.graph_list
+		
+	}
+
 	
 
 

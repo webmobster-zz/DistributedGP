@@ -14,14 +14,14 @@ pub fn load_operators(map: &mut OperatorMap)
 {
 
 	let mut rng = rand::thread_rng();
-	map.insert([rng.gen::<u64>(); 2],Operator::new(incr_pointer,None,1));
+	map.insert([rng.gen::<u64>(); 2],Operator::new(incr_pointer,None,1,0));
 	//map.insert([rng.gen::<u64>(); 2],Operator::new(decr_pointer,None,1));
 	//map.insert([rng.gen::<u64>(); 2],Operator::new(incr_array_pointer,None,2));
 	//map.insert([rng.gen::<u64>(); 2],Operator::new(decr_array_pointer,None,2));
 	//map.insert([rng.gen::<u64>(); 2],Operator::new(get_input,None,2));
-	map.insert([rng.gen::<u64>(); 2],Operator::new(send_output,None,1));
+	map.insert([rng.gen::<u64>(); 2],Operator::new(send_output,None,1,0));
 
-	map.insert([rng.gen::<u64>(); 2],Operator::new(end,None,0));
+	map.insert([rng.gen::<u64>(); 2],Operator::new(end,None,0,0));
 
 }
 
