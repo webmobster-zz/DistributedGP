@@ -60,7 +60,7 @@ pub type OperatorMap = HashMap<[u64;2],Operator>;
 pub trait RandomKey
 {
 	fn random_key<R: Rng>(&self,rng: &mut R) ->[u64;2];
-
+	fn random_key_with_successors<R: Rng>(&self,rng: &mut R, suc: u8) ->Result<[u64;2],()>;
 }
 
 
@@ -89,6 +89,33 @@ impl RandomKey for OperatorMap
 
 
 	}
+
+	fn random_key_with_successors<R: Rng>(&self,rng: &mut R, suc: u8) ->Result<[u64;2],()>
+	{
+
+		let mut operators = Vec::new();
+
+		for entry in self.iter()
+		{
+			let (hash,op)=entry;
+			if op.get_sucessors() == suc
+			{
+				operators.push(*hash);
+			}
+
+		}
+		if operators.len()==0
+		{
+			return Err(())
+
+		}
+		let operator_count = Range::new(0, operators.len());
+		Ok(operators[operator_count.ind_sample(rng)])
+
+
+
+	}
+
 
 }
 

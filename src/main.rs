@@ -21,6 +21,8 @@ use distrGP_Generator::Generator;
 use distrGP_Generator::StateIO;
 use std::sync::mpsc::TryRecvError;
 use distrGP_ProvidedOperators::geneticoperators::TreeCross;
+use distrGP_ProvidedOperators::geneticoperators::FlatCross;
+use distrGP_ProvidedOperators::geneticoperators::PointMutate;
 use distrGP_ProvidedOperators::geneticoperators::StandardGrow;
 use distrGP_Evaluator::FitnessMessage;
 use std::sync::mpsc::channel;
@@ -58,7 +60,10 @@ fn main()
 				problem_description.get_operators(),
 
 				problem_description.get_selector(),
-				vec!(Box::new(TreeCross::new(1.0)) as Box<GeneticOperator>),
+				vec!(	Box::new(TreeCross::new(0.3)) as Box<GeneticOperator>,
+					Box::new(FlatCross::new(0.3)) as Box<GeneticOperator>,
+					Box::new(PointMutate::new(0.4)) as Box<GeneticOperator>,
+					),
 				Box::new(StandardGrow::new(1.0,300)),
 				10000
 				);
@@ -82,7 +87,7 @@ fn fitness(send: Sender<FitnessMessage>, recv: Receiver<FitnessMessage>)
 
 		};
 		send.send(FitnessMessage::Ready);
-		let mut fit_vec: Vec<u64> = std::iter::repeat(1000).take(thing.len()).collect::<Vec<_>>();;
+		let mut fit_vec: Vec<u64> = std::iter::repeat(10000).take(thing.len()).collect::<Vec<_>>();;
 		let mut z = 0;
 		loop
 		{
@@ -104,7 +109,7 @@ fn fitness(send: Sender<FitnessMessage>, recv: Receiver<FitnessMessage>)
 					{
 						//fix
 						StateIO::Done => {i.send_byte(StateIO::Fitness(fit_vec[z])); z+=1;},
-						StateIO::Data(y)=> {fit_vec[z] = 1000 - y; println!("{}",y);},
+						StateIO::Data(y)=> {fit_vec[z] = 10000 - y; println!("{}",y);},
 						_=>(),
 					},
 					Err(e) => match e
@@ -118,7 +123,6 @@ fn fitness(send: Sender<FitnessMessage>, recv: Receiver<FitnessMessage>)
 
 				
 			}
-
 
 		}
 		recv.recv();

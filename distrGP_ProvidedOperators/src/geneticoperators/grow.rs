@@ -48,9 +48,11 @@ impl GeneticOperator for StandardGrow
 	}
 
 
+	//FIXME use new end operator method
 	fn operate(&self, map: &mut OperatorMap, _: &Box<Fn() -> (Graph,Vec<u64>)>) -> Vec<(Graph,Vec<u64>)>
 	{
 
+		debug!("FIXME use new end operator method");
 		if map.len() ==0
 		{
 			panic!("no operators defined");

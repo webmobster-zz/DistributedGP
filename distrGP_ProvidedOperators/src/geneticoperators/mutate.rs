@@ -1,123 +1,130 @@
 extern crate rand;
+extern crate distrGP_Generator;
 
-use super::super::Generator;
-use super::super::Graph;
-use super::super::graph::Node;
-use super::selector::SelectionType::{Tournament};
-use super::selector;
-
+use self::distrGP_Generator::Graph;
+use self::distrGP_Generator::Node;
+use self::distrGP_Generator::OperatorMap;
+use self::distrGP_Generator::GeneticOperator;
+use self::distrGP_Generator::RandomKey;
 
 use self::rand::distributions::{IndependentSample, Range};
+use std::collections::VecDeque;
+use std::collections::HashMap;
 
 
-pub fn point_mutate(generator: & mut Generator) -> Graph
+#[derive(Debug,Clone)]
+pub struct PointMutate
 {
-	
-	let mut working_graph= selector.select();
 
+	probability:f32
+}
 
-	//println!("before tree mutation: {:?}",working_graph); 
-	//fast but bad
-	let mut rng = rand::weak_rng();
+impl PointMutate
+{
 
-	//fix bad OO practices, getters and setters etc
-	let graph_length = Range::new(0, working_graph.list.len());
-
-	let working_index = graph_length.ind_sample(&mut rng);
-
-	let mut working_node = working_graph.list[working_index].clone();
-
-	//assume sucessor count is correct
-	let Node(_,mut suc1,mut suc2,mut suc3) = working_node.clone();
-
-
-
-
-	let operator_count = Range::new(0, generator.operatorpointers.len());
-
-	let new_operator = generator.operatorpointers[operator_count.ind_sample(&mut rng)].clone();
-
-
-
-	// has to be a nicer way
-
-	//matches successors, either prunes or generates a random sucessor if non exist.
- 
-	if new_operator.sucessors == 0
+	pub fn new(probability: f32) -> PointMutate
 	{
-
-		working_node=Node(new_operator.clone(),-1,-1,-1)
-
+		PointMutate{probability: probability}
 	}
-
-	if new_operator.sucessors == 1
-	{
-		if suc1 == -1
-		{
-			suc1 = graph_length.ind_sample(&mut rng) as isize;
-
-		}
-
-		working_node=Node(new_operator.clone(),suc1,-1,-1)
-
-	}
-	if new_operator.sucessors == 2
-	{
-
-		if suc1 == -1
-		{
-			suc1 = graph_length.ind_sample(&mut rng) as isize;
-
-		}
-
-		if suc2 == -1
-		{
-			suc2 = graph_length.ind_sample(&mut rng) as isize ;
-
-		}
-
-		working_node=Node(new_operator.clone(),suc1,suc2,-1)
-
-	}
-
-	if new_operator.sucessors == 3
-	{
-
-
-		if suc1 == -1
-		{
-			suc1 = graph_length.ind_sample(&mut rng) as isize;
-
-		}
-
-		if suc2 == -1
-		{
-			suc2 = graph_length.ind_sample(&mut rng) as isize;
-
-		}
-		if suc3 == -1
-		{
-			suc3 = graph_length.ind_sample(&mut rng) as isize;
-
-		}
-
-
-
-		working_node=Node(new_operator.clone(),suc1,suc2,suc3)
-
-	}
-
-
-	working_graph.list[working_index]=working_node;
-
-
-	//println!("point tree mutation: {:?}",working_graph); 
-	working_graph
 
 }
 
+impl GeneticOperator for PointMutate
+{
 
 
+	fn get_copy(&self) ->  Box<GeneticOperator>
+	{
+
+		Box::new(self.clone()) as Box<GeneticOperator>
+	
+	}
+
+	fn get_probability(&self) ->  f32
+	{
+
+		self.probability
+	
+	}
+
+	fn operate(&self,  map: &mut OperatorMap,selector_closure: &Box<Fn() -> (Graph,Vec<u64>)>) -> Vec<(Graph,Vec<u64>)>
+	{
+	
+		let (mut working_graph,vec)= selector_closure();
+
+
+		//println!("before tree mutation: {:?}",working_graph); 
+		//fast but bad
+		let mut rng = rand::weak_rng();
+
+		//fix bad OO practices, getters and setters etc
+		let graph_length = Range::new(0, working_graph.get_size());
+
+		let working_index = graph_length.ind_sample(&mut rng);
+
+		let mut working_node = working_graph.get_node(working_index);
+
+		//assume sucessor count is correct
+		let Node(_,mut suc1,mut suc2) = working_node.clone();
+
+
+		let new_operator = map.random_key(&mut rng);
+
+
+
+		// has to be a nicer way
+
+		//matches successors, either prunes or generates a random sucessor if non exist.
+	 
+		if map[&new_operator].get_sucessors() == 0
+		{
+
+			working_node=Node(new_operator.clone(),None,None)
+
+		}
+
+		if map[&new_operator].get_sucessors() == 1
+		{
+			if suc1 == None
+			{
+				suc1 = Some(graph_length.ind_sample(&mut rng));
+
+			}
+
+			working_node=Node(new_operator.clone(),suc1,None)
+
+		}
+		if map[&new_operator].get_sucessors() == 2
+		{
+
+			if suc1 == None
+			{
+				suc1 = Some(graph_length.ind_sample(&mut rng));
+
+			}
+
+			if suc2 == None
+			{
+				suc2 = Some(graph_length.ind_sample(&mut rng));
+
+			}
+
+			working_node=Node(new_operator.clone(),suc1,suc2)
+
+		}
+
+
+
+		working_graph.set_node(working_index,working_node);
+
+
+		//println!("point tree mutation: {:?}",working_graph); 
+		vec!((working_graph,vec))
+	}
+}
+
+
+/*
 pub fn tree_mutate(generator: & mut Generator) -> Graph
 {
 
@@ -190,4 +197,5 @@ pub fn clean(generator: & mut Generator) -> Graph
 	working_graph
 
 }
+*/
 

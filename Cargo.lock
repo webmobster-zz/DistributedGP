@@ -47,6 +47,7 @@ name = "distrGP_ProvidedOperators"
 version = "0.0.1"
 dependencies = [
  "distrGP_Generator 0.0.1",
+ "log 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
