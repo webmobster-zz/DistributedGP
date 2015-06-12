@@ -15,7 +15,7 @@ pub struct Operator
 	op: fn(&mut GlobalState, &mut LocalState) -> bool,
 	parts: Option<[u64;2]>,
 	sucessors: u8,
-	cost: u8
+	cost: u64
 
 
 }
@@ -23,7 +23,7 @@ pub struct Operator
 impl Operator
 {
 
-	pub fn new(op:  fn(&mut GlobalState, &mut LocalState) -> bool, parts:Option<[u64;2]>, sucessors: u8, cost: u8) -> Operator
+	pub fn new(op:  fn(&mut GlobalState, &mut LocalState) -> bool, parts:Option<[u64;2]>, sucessors: u8, cost: u64) -> Operator
 	{
 		Operator{ op: op, parts: parts, sucessors: sucessors, cost: cost}
 
@@ -31,6 +31,11 @@ impl Operator
 	pub fn get_sucessors(&self) -> u8
 	{
 		self.sucessors
+
+	}
+	pub fn get_base_cost(&self) -> u64
+	{
+		self.cost
 
 	}
 	pub fn call(&self, global: &mut GlobalState, local: &mut LocalState)->bool

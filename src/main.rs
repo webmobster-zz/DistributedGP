@@ -65,9 +65,9 @@ fn main()
 					Box::new(PointMutate::new(0.4)) as Box<GeneticOperator>,
 					),
 				Box::new(StandardGrow::new(1.0,300)),
-				10000
+				1000
 				);
-		distrGP_Evaluator::init(generator,4,tx,rxt);
+		distrGP_Evaluator::init(generator,12,tx,rxt);
 	});
 	fitness(txt,rx);
 

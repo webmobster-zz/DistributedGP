@@ -29,16 +29,16 @@ use std::thread::JoinGuard;
 
 
 
-pub struct GreenThreadData<'pool>
+pub struct GreenThreadData
 {
 	pub global_state: GlobalState,
 	pub local_state: LocalState,
-	map: &'pool OperatorMap
+	map: OperatorMap
 }
 
-impl<'pool> GreenThreadData<'pool>
+impl GreenThreadData
 {
-	pub fn new(global_state: GlobalState,local_state: LocalState, map: &'pool OperatorMap ) -> GreenThreadData<'pool>
+	pub fn new(global_state: GlobalState,local_state: LocalState, map: OperatorMap ) -> GreenThreadData
 	{
 		GreenThreadData{global_state: global_state, local_state: local_state, map: map}
 
@@ -52,7 +52,7 @@ pub struct ThreadPool<'pool>  {
     //
     // This is the only such Sender, so when it is dropped all subthreads will
     // quit.
-    jobs: Option<Sender<(GreenThreadData<'pool>,Arc<Mutex<ThreadPool<'pool>>>)>>,
+    jobs: Option<Sender<(GreenThreadData,Arc<Mutex<ThreadPool<'pool>>>)>>,
      _guards: Vec<JoinGuard<'pool, ()>>
 }
 
@@ -80,7 +80,7 @@ impl<'pool> ThreadPool<'pool> {
 		    
 
         /// Executes the function `job` on a thread in the pool.
-        pub fn execute(&self, job: GreenThreadData<'pool>, pool: Arc<Mutex<ThreadPool<'pool>>>)
+        pub fn execute(&self, job: GreenThreadData, pool: Arc<Mutex<ThreadPool<'pool>>>)
         {
             self.jobs.as_ref().unwrap().send((job, pool));
         }
@@ -95,7 +95,7 @@ impl<'a> Drop for ThreadPool<'a> {
     }
 }
 
-fn spawn_in_pool<'pool>(jobs: Arc<Mutex<Receiver<(GreenThreadData<'pool>,Arc<Mutex<ThreadPool<'pool>>>)>>>) -> JoinGuard<'pool, ()>
+fn spawn_in_pool<'pool>(jobs: Arc<Mutex<Receiver<(GreenThreadData,Arc<Mutex<ThreadPool<'pool>>>)>>>) -> JoinGuard<'pool, ()>
 {
         thread::scoped(move || {
            // Will spawn a new thread on panic unless it is cancelled.
@@ -119,27 +119,37 @@ fn spawn_in_pool<'pool>(jobs: Arc<Mutex<Receiver<(GreenThreadData<'pool>,Arc<Mut
 
 
 
-fn step<'pool>(mut state: GreenThreadData<'pool>, pool: Arc<Mutex<ThreadPool<'pool>>>)
+fn step<'pool>(mut state: GreenThreadData, pool: Arc<Mutex<ThreadPool<'pool>>>)
 {
 
     	let (mut suc1,mut suc2);
 	let mut operator;
+	let mut local_life: u64;
 	{
 		let lock = state.global_state.graph.lock().unwrap();
 		let (x,y) = lock.get_sucessor_index(state.local_state.node.unwrap());
 		operator= lock.get_operator(state.local_state.node.unwrap());
 		suc1 =x; suc2 =y;
 
+		let life = state.global_state.life.clone().unwrap();
+		let mut lifelock = life.lock().unwrap();
+		*lifelock = *lifelock - state.map.get(&operator).unwrap().get_base_cost();
+		local_life = *lifelock;
+
 
 	}
-
 	let sucessor_bool =state.map.get(&operator).unwrap().call(&mut state.global_state,&mut state.local_state);
 
 	let index;
 
-	if suc1 == None
+	if suc1 == None ||  local_life == 0
 	{
 
+		if local_life ==0
+		{
+			debug!("Killed overunning individual");
+
+		}
 		let thread = state.global_state.thread_count.unwrap();
 		let mut threadlock = thread.lock().unwrap();
 		assert!(*threadlock >= 1);

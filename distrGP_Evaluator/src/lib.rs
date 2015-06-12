@@ -35,16 +35,6 @@ pub enum FitnessMessage
 
 }
 
-pub enum ServerMessage
-{
-	Start,
-	PopVec(Vec<GlobalState>),
-	OperatorMap(OperatorMap),
-	Repetitions(u32),
-	EndPop
-
-}
-
 pub fn init(mut generator: Generator, numthreads: u32, sender: Sender<FitnessMessage>, receiver: Receiver<FitnessMessage>)
 {
 
@@ -64,7 +54,7 @@ pub fn init(mut generator: Generator, numthreads: u32, sender: Sender<FitnessMes
 	
 
 		
-
+	let pool= Arc::new(Mutex::new(ThreadPool::new(12)));
 
 
 
@@ -90,9 +80,10 @@ pub fn init(mut generator: Generator, numthreads: u32, sender: Sender<FitnessMes
 		
 
 		// run all populations and send fitnesses 
-		//try and get rid of the clone
+		//try and get rid of the map clones
+		debug!("Fix Me: multiple uneeded clones of operator map, as the borrow check cant confirm all the jobs using the map will be finished before the next loop");
 		let opmap =generator.get_operator_map();
-		iterate_over_entity(generator.get_graph_list_mutref(),&opmap, 12);
+		iterate_over_entity(generator.get_graph_list_mutref(),opmap.clone(),pool.clone());
 
 			
 
@@ -113,10 +104,10 @@ pub fn init(mut generator: Generator, numthreads: u32, sender: Sender<FitnessMes
 }
 
 
-fn iterate_over_entity(pop: &mut Vec<GlobalState>, map: &OperatorMap,thread_count: u32)
+fn iterate_over_entity(pop: &mut Vec<GlobalState>, map: OperatorMap, pool: Arc<Mutex<ThreadPool>>)
 {
 
-	let pool= Arc::new(Mutex::new(ThreadPool::new(thread_count as usize)));
+
 	for i in 0 .. pop.len()
 	{
 		let working_graph = (&mut **pop).get_mut(i).unwrap();
@@ -124,7 +115,7 @@ fn iterate_over_entity(pop: &mut Vec<GlobalState>, map: &OperatorMap,thread_coun
 		let initial_local_state = LocalState::new();
 
 
-		let green= GreenThreadData::new(working_graph.clone(),initial_local_state,map);
+		let green= GreenThreadData::new(working_graph.clone(),initial_local_state,map.clone());
 
 		{
 			let thread = working_graph.thread_count.clone().unwrap();
@@ -136,7 +127,7 @@ fn iterate_over_entity(pop: &mut Vec<GlobalState>, map: &OperatorMap,thread_coun
 		pool.lock().unwrap().execute(green,pool.clone());
 	}
 	//Hacky
-	while alloc::arc::strong_count(&pool) > 1
+	while alloc::arc::strong_count(&pool) > 2
 	{
 		thread::sleep_ms(100);
 	}
