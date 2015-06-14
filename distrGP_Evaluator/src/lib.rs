@@ -1,5 +1,7 @@
 #![feature(scoped)] 
 #![feature(alloc)] 
+#![deny(warnings)]
+
 #[macro_use]
 extern crate log;
 extern crate alloc;
@@ -7,21 +9,15 @@ extern crate distrGP_Generator;
 mod pool;
 
 use std::sync::mpsc::Sender;
-use std::sync::mpsc::SyncSender;
 use std::sync::mpsc::Receiver;
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::sync::mpsc::sync_channel;
-use std::ptr;
 
-use self::distrGP_Generator::Graph;
-use self::distrGP_Generator::Operator;
 use self::distrGP_Generator::Generator;
 use self::distrGP_Generator::IndividualComm;
 use self::distrGP_Generator::OperatorMap;
 use self::distrGP_Generator::GlobalState;
 use self::distrGP_Generator::LocalState;
-use self::distrGP_Generator::StateIO;
 
 
 use self::pool::ThreadPool;
@@ -62,7 +58,7 @@ pub fn init(mut generator: Generator, numthreads: u32, sender: Sender<FitnessMes
 	{
 
 		let comms= generator.initialize_graphs();
-		sender.send(FitnessMessage::PopVec(comms));
+		assert!(sender.send(FitnessMessage::PopVec(comms)).is_ok());
 
 		info!("waiting for fitness to be ready clients");
 		match receiver.recv()
@@ -92,7 +88,7 @@ pub fn init(mut generator: Generator, numthreads: u32, sender: Sender<FitnessMes
 
 
 		generator.reproduce();
-		sender.send(FitnessMessage::Finish);
+		assert!(sender.send(FitnessMessage::Finish).is_ok());
 
 	}
 

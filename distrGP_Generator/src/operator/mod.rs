@@ -9,13 +9,22 @@ use super::LocalState;
 use rand::Rng;
 use std::sync::{Arc, Mutex};
 
+#[derive(Clone,Debug,Copy)]
+pub enum SpecialOperator
+{
+	None,
+	NewThread,
+
+}
+
 //#[derive(Clone,Debug)]
 pub struct Operator
 {
 	op: fn(&mut GlobalState, &mut LocalState) -> bool,
 	parts: Option<[u64;2]>,
 	sucessors: u8,
-	cost: u64
+	cost: u64,
+	special: SpecialOperator
 
 
 }
@@ -23,9 +32,9 @@ pub struct Operator
 impl Operator
 {
 
-	pub fn new(op:  fn(&mut GlobalState, &mut LocalState) -> bool, parts:Option<[u64;2]>, sucessors: u8, cost: u64) -> Operator
+	pub fn new(op:  fn(&mut GlobalState, &mut LocalState) -> bool, parts:Option<[u64;2]>, sucessors: u8, cost: u64, special: SpecialOperator) -> Operator
 	{
-		Operator{ op: op, parts: parts, sucessors: sucessors, cost: cost}
+		Operator{ op: op, parts: parts, sucessors: sucessors, cost: cost, special: special}
 
 	}
 	pub fn get_sucessors(&self) -> u8
@@ -36,6 +45,11 @@ impl Operator
 	pub fn get_base_cost(&self) -> u64
 	{
 		self.cost
+
+	}
+	pub fn get_special(&self) -> SpecialOperator
+	{
+		self.special
 
 	}
 	pub fn call(&self, global: &mut GlobalState, local: &mut LocalState)->bool
@@ -53,7 +67,7 @@ impl Clone for Operator
 
 	fn clone(&self) -> Operator
 	{
-		Operator{op: self.op, parts: self.parts.clone(),sucessors: self.sucessors, cost: self.cost}
+		Operator{op: self.op, parts: self.parts.clone(),sucessors: self.sucessors, cost: self.cost, special: self.special }
 
 	}
 

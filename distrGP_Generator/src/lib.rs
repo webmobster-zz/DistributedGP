@@ -8,14 +8,17 @@ pub use self::graph::Node;
 
 pub use self::geneticoperator::GeneticOperator;
 pub use self::selectortrait::Selector;
+
 pub use self::operator::OperatorMap;
 pub use self::operator::Operator;
 pub use self::operator::RandomKey;
+pub use self::operator::SpecialOperator;
+
 pub use self::state::GlobalState;
 pub use self::state::LocalState;
-pub use self::individualcomm::IndividualComm;
 pub use self::state::StateIO;
 
+pub use self::individualcomm::IndividualComm;
 
 use self::rand::Rng;
 

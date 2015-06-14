@@ -8,7 +8,7 @@
 //#![deny(warnings)]
 
 
-extern crate distrGP_Evaluator;
+extern crate distr_gp_evaluator;
 extern crate distrGP_ProvidedOperators;
 extern crate distrGP_Generator;
 extern crate env_logger;
@@ -24,7 +24,7 @@ use distrGP_ProvidedOperators::geneticoperators::TreeCross;
 use distrGP_ProvidedOperators::geneticoperators::FlatCross;
 use distrGP_ProvidedOperators::geneticoperators::PointMutate;
 use distrGP_ProvidedOperators::geneticoperators::StandardGrow;
-use distrGP_Evaluator::FitnessMessage;
+use distr_gp_evaluator::FitnessMessage;
 use std::sync::mpsc::channel;
 use std::thread;
 use std::sync::mpsc::{Sender, Receiver};
@@ -65,9 +65,9 @@ fn main()
 					Box::new(PointMutate::new(0.4)) as Box<GeneticOperator>,
 					),
 				Box::new(StandardGrow::new(1.0,300)),
-				1000
+				10000
 				);
-		distrGP_Evaluator::init(generator,12,tx,rxt);
+		distr_gp_evaluator::init(generator,12,tx,rxt);
 	});
 	fitness(txt,rx);
 
@@ -109,7 +109,7 @@ fn fitness(send: Sender<FitnessMessage>, recv: Receiver<FitnessMessage>)
 					{
 						//fix
 						StateIO::Done => {i.send_byte(StateIO::Fitness(fit_vec[z])); z+=1;},
-						StateIO::Data(y)=> {fit_vec[z] = 10000 - y; println!("{}",y);},
+						StateIO::Data(y)=> {fit_vec[z] = 10000u64.wrapping_sub(y); println!("{}",y);},
 						_=>(),
 					},
 					Err(e) => match e

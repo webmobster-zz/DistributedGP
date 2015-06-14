@@ -16,10 +16,11 @@
 extern crate distrGP_Generator;
 
 use self::distrGP_Generator::OperatorMap;
-use self::distrGP_Generator::Graph;
 use self::distrGP_Generator::GlobalState;
 use self::distrGP_Generator::LocalState;
 use self::distrGP_Generator::StateIO;
+use self::distrGP_Generator::SpecialOperator;
+
 use std::sync::mpsc::{channel, Sender, Receiver};
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -28,7 +29,7 @@ use std::mem;
 use std::thread::JoinGuard;
 
 
-
+#[derive(Clone)]
 pub struct GreenThreadData
 {
 	pub global_state: GlobalState,
@@ -82,7 +83,7 @@ impl<'pool> ThreadPool<'pool> {
         /// Executes the function `job` on a thread in the pool.
         pub fn execute(&self, job: GreenThreadData, pool: Arc<Mutex<ThreadPool<'pool>>>)
         {
-            self.jobs.as_ref().unwrap().send((job, pool));
+            assert!(self.jobs.as_ref().unwrap().send((job, pool)).is_ok());
         }
         
 }
@@ -131,16 +132,29 @@ fn step<'pool>(mut state: GreenThreadData, pool: Arc<Mutex<ThreadPool<'pool>>>)
 		operator= lock.get_operator(state.local_state.node.unwrap());
 		suc1 =x; suc2 =y;
 
+
+
 		let life = state.global_state.life.clone().unwrap();
 		let mut lifelock = life.lock().unwrap();
-		*lifelock = *lifelock - state.map.get(&operator).unwrap().get_base_cost();
-		local_life = *lifelock;
+
+
+		if *lifelock > state.map.get(&operator).unwrap().get_base_cost()
+		{
+			*lifelock = *lifelock - state.map.get(&operator).unwrap().get_base_cost();
+			local_life = *lifelock;
+		}
+		else
+		{
+
+			*lifelock=0;
+			local_life=0;
+		}	
 
 
 	}
 	let sucessor_bool =state.map.get(&operator).unwrap().call(&mut state.global_state,&mut state.local_state);
 
-	let index;
+	
 
 	if suc1 == None ||  local_life == 0
 	{
@@ -204,26 +218,61 @@ fn step<'pool>(mut state: GreenThreadData, pool: Arc<Mutex<ThreadPool<'pool>>>)
 		return;
 	}
 
-	if sucessor_bool
+	match state.map.get(&operator).unwrap().get_special()
 	{
+		SpecialOperator::NewThread=>{
 
-		index = suc1.unwrap();
+
+
+				let mut state2 = state.clone();
+
+				state.local_state.node = Some(suc1.unwrap());
+
+				state2.local_state.node = Some(suc2.unwrap());
+				let thread = state.global_state.thread_count.clone().unwrap();
+				let mut threadlock = thread.lock().unwrap();
+				*threadlock = *threadlock + 1;
+				//This has to happen otherwise the strong refs to pool drops to 1 and the parent thread continues into an unknown state
+				{
+
+					let lock= pool.lock().unwrap();
+					lock.execute(state,pool.clone());
+					lock.execute(state2,pool.clone());
+				}
+
+
+
+
+			},
+		_=>{
+
+				let index;
+				if sucessor_bool
+				{
+
+					index = suc1.unwrap();
+				}
+				else
+				{
+					index = suc2.unwrap();
+
+				}
+
+				state.local_state.node = Some(index);
+
+
+				//This has to happen otherwise the strong refs to pool drops to 1 and the parent thread continues into an unknown state
+				{
+					let lock= pool.lock().unwrap();
+					lock.execute(state,pool.clone());
+				}
+				    
+
+			}
+
 	}
-	else
-	{
-		index = suc2.unwrap();
-
-	}
-
-	state.local_state.node = Some(index);
 
 
-	//This has to happen otherwise the strong refs to pool drops to 1 and the parent thread continues into an unknown state
-	{
-		let lock= pool.lock().unwrap();
-		lock.execute(state,pool.clone());
-	}
-	    
 			
 
 

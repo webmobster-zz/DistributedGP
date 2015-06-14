@@ -3,26 +3,35 @@ extern crate rand;
 
 use self::distrGP_Generator::OperatorMap;
 use self::distrGP_Generator::Operator;
+use self::distrGP_Generator::SpecialOperator;
 use self::distrGP_Generator::GlobalState;
 use self::distrGP_Generator::LocalState;
 use self::distrGP_Generator::StateIO;
+
 use std::sync::mpsc::TryRecvError;
 use std::sync::{Arc, Mutex};
+
 use self::rand::Rng;
 
 pub fn load_operators(map: &mut OperatorMap)
 {
 
 	let mut rng = rand::thread_rng();
-	map.insert([rng.gen::<u64>(); 2],Operator::new(incr_pointer,None,1,10));
-	//map.insert([rng.gen::<u64>(); 2],Operator::new(decr_pointer,None,1));
+	map.insert([rng.gen::<u64>(); 2],Operator::new(incr_pointer,None,1,10,SpecialOperator::None));
+	map.insert([rng.gen::<u64>(); 2],Operator::new(decr_pointer,None,1,10,SpecialOperator::None));
+	map.insert([rng.gen::<u64>(); 2],Operator::new(split,None,2,100,SpecialOperator::NewThread));
 	//map.insert([rng.gen::<u64>(); 2],Operator::new(incr_array_pointer,None,2));
 	//map.insert([rng.gen::<u64>(); 2],Operator::new(decr_array_pointer,None,2));
 	//map.insert([rng.gen::<u64>(); 2],Operator::new(get_input,None,2));
-	map.insert([rng.gen::<u64>(); 2],Operator::new(send_output,None,1,10));
+	map.insert([rng.gen::<u64>(); 2],Operator::new(send_output,None,1,1000,SpecialOperator::None));
 
-	map.insert([rng.gen::<u64>(); 2],Operator::new(end,None,0,10));
+	map.insert([rng.gen::<u64>(); 2],Operator::new(end,None,0,10,SpecialOperator::None));
 
+}
+
+fn split(global: &mut GlobalState, local: &mut LocalState) -> bool
+{
+	true
 }
 
 fn get_input(global: &mut GlobalState, local: &mut LocalState) -> bool

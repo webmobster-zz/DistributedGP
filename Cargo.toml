@@ -24,7 +24,7 @@ path = "./distrGP_Generator"
 [dependencies.distrGP_ProvidedOperators]
 path = "./distrGP_ProvidedOperators"
 
-[dependencies.distrGP_Evaluator]
+[dependencies.distr_gp_evaluator]
 path = "./distrGP_Evaluator"
 
 # The development profile, used for `cargo build`
