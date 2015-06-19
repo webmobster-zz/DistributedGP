@@ -17,6 +17,7 @@ pub enum StateIO
 	Fitness(u64),
 	SizeGraph(u64),
 	SizeVec(u64),
+	Life(u64),
 	Done
 
 }
@@ -92,6 +93,12 @@ impl GlobalState
 		let graphlock =self.graph.lock().unwrap();
 		(graphlock.clone(),veclock.clone())
 
+	}
+	pub fn get_fitness(&self) -> u64
+	{
+		let fitness = self.fitness.clone().unwrap();
+		let lockfit =  *fitness.lock().unwrap();
+		lockfit
 	}
 }
 

@@ -24,7 +24,6 @@ use self::distrGP_Generator::SpecialOperator;
 use std::sync::mpsc::{channel, Sender, Receiver};
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::sync::mpsc::TryRecvError;
 use std::mem;
 use std::thread::JoinGuard;
 
@@ -187,11 +186,10 @@ fn step<'pool>(mut state: GreenThreadData, pool: Arc<Mutex<ThreadPool<'pool>>>)
 
 			}
 
-
 			//clear input
 			loop
 			{
-				match inlock.try_recv()
+				match inlock.recv()
 				{
 					Ok(x) => match x
 					{
@@ -199,12 +197,8 @@ fn step<'pool>(mut state: GreenThreadData, pool: Arc<Mutex<ThreadPool<'pool>>>)
 						StateIO::Fitness(y) => {*fitlock = y; break},
 						_=> panic!("Invalid Data"),
 					},
-					Err(e) => match e
-					{
-						TryRecvError::Empty=> (),
-						TryRecvError::Disconnected => panic!("Dropped Comms")
+					Err(_) => panic!("Dropped Comms")
 
-					}
 				}	
 			}
 
@@ -214,7 +208,6 @@ fn step<'pool>(mut state: GreenThreadData, pool: Arc<Mutex<ThreadPool<'pool>>>)
 			*threadlock = *threadlock - 1;
 
 		}
-		
 		return;
 	}
 

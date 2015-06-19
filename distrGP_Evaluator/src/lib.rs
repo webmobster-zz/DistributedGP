@@ -11,7 +11,6 @@ mod pool;
 use std::sync::mpsc::Sender;
 use std::sync::mpsc::Receiver;
 use std::sync::{Arc, Mutex};
-use std::thread;
 
 use self::distrGP_Generator::Generator;
 use self::distrGP_Generator::IndividualComm;
@@ -27,6 +26,7 @@ pub enum FitnessMessage
 {
 	Ready,
 	PopVec(Vec<IndividualComm>),
+	PopFin,
 	Finish
 
 }
@@ -81,9 +81,17 @@ pub fn init(mut generator: Generator, numthreads: u32, sender: Sender<FitnessMes
 		let opmap =generator.get_operator_map();
 		iterate_over_entity(generator.get_graph_list_mutref(),opmap.clone(),pool.clone());
 
-			
-
-		//generator.set_graphs(updated_pop);
+		match receiver.recv()
+		{
+			Ok(x) => {
+				 	match x
+					{
+						FitnessMessage::PopFin => (),
+						_ => panic!("Invalid Message")
+					}
+				},
+			_ => panic!("Dropped receiver")
+		}
 
 
 
@@ -122,11 +130,7 @@ fn iterate_over_entity(pop: &mut Vec<GlobalState>, map: OperatorMap, pool: Arc<M
 		}
 		pool.lock().unwrap().execute(green,pool.clone());
 	}
-	//Hacky
-	while alloc::arc::strong_count(&pool) > 2
-	{
-		thread::sleep_ms(100);
-	}
+
 
 
 }	

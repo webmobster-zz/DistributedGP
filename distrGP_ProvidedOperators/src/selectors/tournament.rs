@@ -54,8 +54,9 @@ impl Selector for Tournament
 
 			}
 			tournament_vector.sort();
-
+			debug!("selected {0}, not selected {1}",tournament_vector[0].get_fitness(),tournament_vector[1].get_fitness());
 			tournament_vector[0].unique_graphvec_copy()
+
 		})
 
 
