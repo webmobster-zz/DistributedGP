@@ -1,4 +1,4 @@
-//#![deny(warnings)]
+#![deny(warnings)]
 
 extern crate rand;
 
@@ -18,7 +18,7 @@ pub use self::state::GlobalState;
 pub use self::state::LocalState;
 pub use self::state::StateIO;
 
-pub use self::individualcomm::IndividualComm;
+pub use self::bichannel::BiChannel;
 
 use self::rand::Rng;
 
@@ -29,12 +29,14 @@ mod operator;
 mod state;
 mod selectortrait;
 mod reproduce;
-mod individualcomm;
+mod bichannel;
 
 
 mod geneticoperator;
 
 //#[derive(Show,Clone)]
+#[allow(dead_code)]
+#[allow(non_snake_case)]
 pub struct Generator
 {
 	popcount: u32,
@@ -98,15 +100,15 @@ impl Generator
 		}
 	}
 
-	pub fn initialize_graphs( &mut self) -> Vec<IndividualComm>
+	pub fn initialize_graphs( &mut self) -> Vec<BiChannel<StateIO>>
 	{
 
-		let mut comms: Vec<IndividualComm> = Vec::new();
+		let mut comms: Vec<BiChannel<StateIO>> = Vec::new();
 		for i in 0..self.graph_list.len()
 		{	
 			
-			let (tx,rx) = self.graph_list[i].initialize(self.life);
-			comms.push(IndividualComm::new(tx,rx));
+			let  comm=self.graph_list[i].initialize(self.life);
+			comms.push(comm);
 
 		}
 		comms
@@ -125,7 +127,7 @@ impl Generator
 			let new_graph = self.grow_operator.operate(&mut self.operatorpointers,&closure);
 			for x in new_graph
 			{
-				let mut new_graph = x.clone();
+				let new_graph = x.clone();
 				let (graph,memory) = new_graph;
 				self.graph_list.push(GlobalState::new(memory,graph));
 				if self.graph_list.len() == self.popcount as usize
@@ -154,6 +156,14 @@ impl Generator
 		self.graph_list.clone()
 		
 	}
+
+	//may not be efficient
+	pub fn get_graph_list_safecopy(&self) -> Vec<GlobalState>
+	{
+		self.graph_list.iter().map(|x| x.clone().unique_copy()).collect()
+		
+	}
+
 
 
 

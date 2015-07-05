@@ -1,6 +1,5 @@
 extern crate rand;
 
-use super::Graph;
 use super::GeneticOperator;
 use super::OperatorMap;
 use super::Selector;

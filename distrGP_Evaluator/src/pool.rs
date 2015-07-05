@@ -13,13 +13,13 @@
 
 //! Evaluates an individual using thread pools
 
-extern crate distrGP_Generator;
+extern crate distrgp_generator;
 
-use self::distrGP_Generator::OperatorMap;
-use self::distrGP_Generator::GlobalState;
-use self::distrGP_Generator::LocalState;
-use self::distrGP_Generator::StateIO;
-use self::distrGP_Generator::SpecialOperator;
+use self::distrgp_generator::OperatorMap;
+use self::distrgp_generator::GlobalState;
+use self::distrgp_generator::LocalState;
+use self::distrgp_generator::StateIO;
+use self::distrgp_generator::SpecialOperator;
 
 use std::sync::mpsc::{channel, Sender, Receiver};
 use std::sync::{Arc, Mutex};
@@ -95,6 +95,7 @@ impl<'a> Drop for ThreadPool<'a> {
     }
 }
 
+#[allow(deprecated)]
 fn spawn_in_pool<'pool>(jobs: Arc<Mutex<Receiver<(GreenThreadData,Arc<Mutex<ThreadPool<'pool>>>)>>>) -> JoinGuard<'pool, ()>
 {
         thread::scoped(move || {
@@ -122,150 +123,161 @@ fn spawn_in_pool<'pool>(jobs: Arc<Mutex<Receiver<(GreenThreadData,Arc<Mutex<Thre
 fn step<'pool>(mut state: GreenThreadData, pool: Arc<Mutex<ThreadPool<'pool>>>)
 {
 
-    	let (mut suc1,mut suc2);
-	let mut operator;
-	let mut local_life: u64;
-	{
-		let lock = state.global_state.graph.lock().unwrap();
-		let (x,y) = lock.get_sucessor_index(state.local_state.node.unwrap());
-		operator= lock.get_operator(state.local_state.node.unwrap());
-		suc1 =x; suc2 =y;
+	loop{
 
-
-
-		let life = state.global_state.life.clone().unwrap();
-		let mut lifelock = life.lock().unwrap();
-
-
-		if *lifelock > state.map.get(&operator).unwrap().get_base_cost()
+		let (mut suc1,mut suc2);
+		let mut operator;
+		let mut local_life: u64;
 		{
-			*lifelock = *lifelock - state.map.get(&operator).unwrap().get_base_cost();
-			local_life = *lifelock;
-		}
-		else
-		{
-
-			*lifelock=0;
-			local_life=0;
-		}	
+			let lock = state.global_state.graph.lock().unwrap();
+			let (x,y) = lock.get_sucessor_index(state.local_state.node.unwrap());
+			operator= lock.get_operator(state.local_state.node.unwrap());
+			suc1 =x; suc2 =y;
 
 
-	}
-	let sucessor_bool =state.map.get(&operator).unwrap().call(&mut state.global_state,&mut state.local_state);
 
-	
-
-	if suc1 == None ||  local_life == 0
-	{
-
-		if local_life ==0
-		{
-			debug!("Killed overunning individual");
-
-		}
-		let thread = state.global_state.thread_count.unwrap();
-		let mut threadlock = thread.lock().unwrap();
-		assert!(*threadlock >= 1);
-		if *threadlock == 1
-		{
-	
-			let output = state.global_state.output.clone().unwrap();
-			let outlock = output.lock().unwrap();
-
-			let input = state.global_state.input.clone().unwrap();
-			let inlock = input.lock().unwrap();
-
-			let fitness = state.global_state.fitness.clone().unwrap();
-			let mut fitlock = fitness.lock().unwrap();
+			let life = state.global_state.life.clone().unwrap();
+			let mut lifelock = life.lock().unwrap();
 
 
-			match outlock.send(StateIO::Done)
+			if *lifelock > state.map.get(&operator).unwrap().get_base_cost()
 			{
-				Ok(_) => (),
-				_=> panic!("Dropped Comms")
+				*lifelock = *lifelock - state.map.get(&operator).unwrap().get_base_cost();
+				local_life = *lifelock;
+			}
+			else
+			{
+
+				*lifelock=0;
+				local_life=0;
+			}	
+
+
+		}
+		let sucessor_bool =state.map.get(&operator).unwrap().call(&mut state.global_state,&mut state.local_state);
+
+
+
+		if suc1 == None ||  local_life == 0
+		{
+
+			if local_life ==0
+			{
+				debug!("Killed overunning individual");
 
 			}
-
-			//clear input
-			loop
+			let thread = state.global_state.thread_count.unwrap();
+			let mut threadlock = thread.lock().unwrap();
+			assert!(*threadlock >= 1);
+			if *threadlock == 1
 			{
-				match inlock.recv()
+
+
+
+				let comm = state.global_state.comm.clone().unwrap();
+				let commlock = comm.lock().unwrap();
+
+				let fitness = state.global_state.fitness.clone().unwrap();
+				let mut fitlock = fitness.lock().unwrap();
+
+				let life = state.global_state.life.clone().unwrap();
+				let lifelock = life.lock().unwrap();
+
+				let graphlock = state.global_state.graph.lock().unwrap();
+
+
+
+				match commlock.send(StateIO::Done)
 				{
-					Ok(x) => match x
+					Ok(_) => (),
+					_=> panic!("Dropped Comms")
+
+				}
+				match commlock.send(StateIO::SizeGraph(graphlock.get_size() as u64))
+				{
+					Ok(_) => (),
+					_=> panic!("Dropped Comms")
+
+				}
+				match commlock.send(StateIO::Life(*lifelock))
+				{
+					Ok(_) => (),
+					_=> panic!("Dropped Comms")
+
+				}
+
+				//clear input
+				loop
+				{
+					match commlock.recv()
 					{
-						StateIO::Data(_) => (),
-						StateIO::Fitness(y) => {*fitlock = y; break},
-						_=> panic!("Invalid Data"),
-					},
-					Err(_) => panic!("Dropped Comms")
+						Ok(x) => match x
+						{
+							StateIO::Data(_) => (),
+							StateIO::Fitness(y) => {*fitlock = y; break},
+							_=> panic!("Invalid Data"),
+						},
+						Err(_) => panic!("Dropped Comms")
 
-				}	
+					}	
+				}
+
 			}
+			else
+			{
+				*threadlock = *threadlock - 1;
 
+			}
+			return;
 		}
-		else
+
+		match state.map.get(&operator).unwrap().get_special()
 		{
-			*threadlock = *threadlock - 1;
+			SpecialOperator::NewThread=>{
+
+
+
+					let mut state2 = state.clone();
+
+					state.local_state.node = Some(suc1.unwrap());
+
+					state2.local_state.node = Some(suc2.unwrap());
+					let thread = state.global_state.thread_count.clone().unwrap();
+					let mut threadlock = thread.lock().unwrap();
+					*threadlock = *threadlock + 1;
+					//This has to happen otherwise the strong refs to pool drops to 1 and the parent thread continues into an unknown state
+					{
+
+						let lock= pool.lock().unwrap();
+						lock.execute(state2,pool.clone());
+					}
+
+
+
+
+				},
+			_=>{
+
+					let index;
+					if sucessor_bool
+					{
+
+						index = suc1.unwrap();
+					}
+					else
+					{
+						index = suc2.unwrap();
+
+					}
+
+					state.local_state.node = Some(index);
+					    
+
+				}
 
 		}
-		return;
-	}
-
-	match state.map.get(&operator).unwrap().get_special()
-	{
-		SpecialOperator::NewThread=>{
-
-
-
-				let mut state2 = state.clone();
-
-				state.local_state.node = Some(suc1.unwrap());
-
-				state2.local_state.node = Some(suc2.unwrap());
-				let thread = state.global_state.thread_count.clone().unwrap();
-				let mut threadlock = thread.lock().unwrap();
-				*threadlock = *threadlock + 1;
-				//This has to happen otherwise the strong refs to pool drops to 1 and the parent thread continues into an unknown state
-				{
-
-					let lock= pool.lock().unwrap();
-					lock.execute(state,pool.clone());
-					lock.execute(state2,pool.clone());
-				}
-
-
-
-
-			},
-		_=>{
-
-				let index;
-				if sucessor_bool
-				{
-
-					index = suc1.unwrap();
-				}
-				else
-				{
-					index = suc2.unwrap();
-
-				}
-
-				state.local_state.node = Some(index);
-
-
-				//This has to happen otherwise the strong refs to pool drops to 1 and the parent thread continues into an unknown state
-				{
-					let lock= pool.lock().unwrap();
-					lock.execute(state,pool.clone());
-				}
-				    
-
-			}
 
 	}
-
-
 			
 
 

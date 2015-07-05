@@ -5,36 +5,40 @@
 #[macro_use]
 extern crate log;
 extern crate alloc;
-extern crate distrGP_Generator;
+extern crate distrgp_generator;
 mod pool;
 
-use std::sync::mpsc::Sender;
-use std::sync::mpsc::Receiver;
 use std::sync::{Arc, Mutex};
 
-use self::distrGP_Generator::Generator;
-use self::distrGP_Generator::IndividualComm;
-use self::distrGP_Generator::OperatorMap;
-use self::distrGP_Generator::GlobalState;
-use self::distrGP_Generator::LocalState;
-
+use self::distrgp_generator::Generator;
+use self::distrgp_generator::BiChannel;
+use self::distrgp_generator::OperatorMap;
+use self::distrgp_generator::GlobalState;
+use self::distrgp_generator::LocalState;
+use self::distrgp_generator::StateIO;
 
 use self::pool::ThreadPool;
 use self::pool::GreenThreadData;
 
+pub enum UtilMessage
+{
+	RequestData,
+	Data(Vec<GlobalState>),
+}
+
 pub enum FitnessMessage
 {
 	Ready,
-	PopVec(Vec<IndividualComm>),
+	PopVec(Vec<BiChannel<StateIO>>),
 	PopFin,
 	Finish
 
 }
-
-pub fn init(mut generator: Generator, numthreads: u32, sender: Sender<FitnessMessage>, receiver: Receiver<FitnessMessage>)
+#[allow(unused_variables)]
+pub fn init(mut generator: Generator, numthreads: u32, fitcomms: BiChannel<FitnessMessage>, utilcomms: BiChannel<UtilMessage>)
 {
 
-
+	info!("started evaluator");
 	
 
 	assert!(numthreads > 0, "Need to set more than 1 evaluator threads");
@@ -58,10 +62,10 @@ pub fn init(mut generator: Generator, numthreads: u32, sender: Sender<FitnessMes
 	{
 
 		let comms= generator.initialize_graphs();
-		assert!(sender.send(FitnessMessage::PopVec(comms)).is_ok());
+		assert!(fitcomms.send(FitnessMessage::PopVec(comms)).is_ok());
 
-		info!("waiting for fitness to be ready clients");
-		match receiver.recv()
+		info!("waiting for fitness evaluator to be ready");
+		match fitcomms.recv()
 		{
 			Ok(x) => {
 				 	match x
@@ -79,9 +83,11 @@ pub fn init(mut generator: Generator, numthreads: u32, sender: Sender<FitnessMes
 		//try and get rid of the map clones
 		debug!("Fix Me: multiple uneeded clones of operator map, as the borrow check cant confirm all the jobs using the map will be finished before the next loop");
 		let opmap =generator.get_operator_map();
+
+		info!("Started Evaluation");
 		iterate_over_entity(generator.get_graph_list_mutref(),opmap.clone(),pool.clone());
 
-		match receiver.recv()
+		match fitcomms.recv()
 		{
 			Ok(x) => {
 				 	match x
@@ -93,10 +99,27 @@ pub fn init(mut generator: Generator, numthreads: u32, sender: Sender<FitnessMes
 			_ => panic!("Dropped receiver")
 		}
 
+		info!("Evaluated Generation");
+
+		match utilcomms.try_recv()
+		{
+			Ok(x) => {
+				 	match x
+					{
+						UtilMessage::RequestData => {
+											assert!(utilcomms.send(UtilMessage::Data(generator.get_graph_list_safecopy())).is_ok());
+										},
+						_ => panic!("Invalid Message")
+					}
+				},
+			_ => ()
+		}
+
+
 
 
 		generator.reproduce();
-		assert!(sender.send(FitnessMessage::Finish).is_ok());
+		assert!(fitcomms.send(FitnessMessage::Finish).is_ok());
 
 	}
 

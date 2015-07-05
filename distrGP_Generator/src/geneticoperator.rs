@@ -1,6 +1,5 @@
 use super::Graph;
 use super::OperatorMap;
-use super::GlobalState;
 
 pub trait GeneticOperator
 {

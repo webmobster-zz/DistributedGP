@@ -1,11 +1,12 @@
 [root]
-name = "distrGP"
+name = "distrgp_testimpl"
 version = "0.0.1"
 dependencies = [
  "csv 0.14.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "distrGP_Generator 0.0.1",
  "distrGP_ProvidedOperators 0.0.1",
- "distr_gp_evaluator 0.0.1",
+ "distrgp_evaluator 0.0.1",
+ "distrgp_generator 0.0.1",
+ "distrgp_util 0.0.1",
  "dot 0.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -27,26 +28,36 @@ dependencies = [
 ]
 
 [[package]]
-name = "distrGP_Generator"
-version = "0.0.1"
-dependencies = [
- "rand 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "distrGP_ProvidedOperators"
 version = "0.0.1"
 dependencies = [
- "distrGP_Generator 0.0.1",
+ "distrgp_generator 0.0.1",
  "log 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
-name = "distr_gp_evaluator"
+name = "distrgp_evaluator"
 version = "0.0.1"
 dependencies = [
- "distrGP_Generator 0.0.1",
+ "distrgp_generator 0.0.1",
+ "log 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "distrgp_generator"
+version = "0.0.1"
+dependencies = [
+ "rand 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "distrgp_util"
+version = "0.0.1"
+dependencies = [
+ "distrgp_evaluator 0.0.1",
+ "distrgp_generator 0.0.1",
  "log 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]

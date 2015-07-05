@@ -1,13 +1,11 @@
 extern crate rand;
 
 
-use std::fmt;
 use std::collections::HashMap;
 use self::rand::distributions::{IndependentSample, Range};
 use super::GlobalState;
 use super::LocalState;
 use rand::Rng;
-use std::sync::{Arc, Mutex};
 
 #[derive(Clone,Debug,Copy)]
 pub enum SpecialOperator

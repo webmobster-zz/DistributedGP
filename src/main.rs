@@ -1,6 +1,6 @@
 #![crate_type = "bin"]
 
-#![crate_name = "distrGP"]
+#![crate_name = "distrgp_testimpl"]
 
 
 
@@ -8,30 +8,35 @@
 //#![deny(warnings)]
 
 extern crate rand;
-extern crate distr_gp_evaluator;
+extern crate distrgp_evaluator;
 extern crate distrGP_ProvidedOperators;
-extern crate distrGP_Generator;
+extern crate distrgp_generator;
+extern crate distrgp_util;
 extern crate env_logger;
 #[macro_use]
 extern crate log;
 
 use log::{LogRecord, LogLevel, LogMetadata};
-use distrGP_Generator::GeneticOperator;
-use distrGP_Generator::Generator;
-use distrGP_Generator::IndividualComm;
-use distrGP_Generator::StateIO;
+use distrgp_generator::GeneticOperator;
+use distrgp_generator::Generator;
+use distrgp_generator::BiChannel;
+use distrgp_generator::StateIO;
 
 use distrGP_ProvidedOperators::geneticoperators::TreeCross;
 use distrGP_ProvidedOperators::geneticoperators::FlatCross;
 use distrGP_ProvidedOperators::geneticoperators::PointMutate;
 use distrGP_ProvidedOperators::geneticoperators::StandardGrow;
-use distr_gp_evaluator::FitnessMessage;
+use distrGP_ProvidedOperators::geneticoperators::Rewire;
+use distrGP_ProvidedOperators::geneticoperators::Clean;
+use distrGP_ProvidedOperators::geneticoperators::InsertNode;
+use distrgp_evaluator::FitnessMessage;
 
 
 use std::sync::mpsc::TryRecvError;
 use std::sync::mpsc::channel;
 use std::thread;
 use std::sync::mpsc::{Sender, Receiver};
+
 
 use rand::distributions::{IndependentSample, Range};
 
@@ -55,8 +60,8 @@ fn main()
 
 	
 	//names
-	let (tx, rx) = channel();
-	let (txt, rxt) = channel();
+	let (fit_end_one, fit_end_two) = BiChannel::new();
+	let (util_end_one, util_end_two) = BiChannel::new();
 	thread::spawn(move || {
 		let problem_description = reader::readfile();
 
@@ -66,23 +71,33 @@ fn main()
 				problem_description.get_operators(),
 
 				problem_description.get_selector(),
-				vec!(	Box::new(TreeCross::new(0.55)) as Box<GeneticOperator>,
+				vec!(	Box::new(TreeCross::new(0.25)) as Box<GeneticOperator>,
 					Box::new(FlatCross::new(0.05)) as Box<GeneticOperator>,
-					Box::new(PointMutate::new(0.4)) as Box<GeneticOperator>,
+					Box::new(PointMutate::new(0.25)) as Box<GeneticOperator>,
+					Box::new(Rewire::new(0.25)) as Box<GeneticOperator>,
+					Box::new(Clean::new(0.1)) as Box<GeneticOperator>,
+					Box::new(InsertNode::new(0.1)) as Box<GeneticOperator>,
 					),
-				Box::new(StandardGrow::new(1.0,300)),
+				Box::new(StandardGrow::new(1.0,200)),
 				10000
 				);
-		distr_gp_evaluator::init(generator,12,tx,rxt);
+		distrgp_evaluator::init(generator,12,fit_end_two,util_end_two);
 	});
-	fitness(txt,rx);
+	thread::spawn(move || {distrgp_util::util_placeholder_runner(util_end_one);});
+	fitness(fit_end_one);
+
+	loop{}
+
 
 }
 
-fn fitness(send: Sender<FitnessMessage>, recv: Receiver<FitnessMessage>)
+fn fitness(comm: BiChannel<FitnessMessage>)
 {
+
+	let mut average_size: f64 = 300.0;
 	loop{
-		let mut thing =match recv.recv()
+		info!("Average Graph Size ={}", average_size);
+		let mut ind_comms =match comm.recv()
 		{
 			Ok(y) => match y
 				{
@@ -92,32 +107,73 @@ fn fitness(send: Sender<FitnessMessage>, recv: Receiver<FitnessMessage>)
 			_=> panic!("Dropped sender")
 
 		};
-		send.send(FitnessMessage::Ready);
-		ind_fitness(thing);
-		send.send(FitnessMessage::PopFin);
-		recv.recv();
-		info!("fitness calc done");
+		info!("Received Communication Channels");
+		comm.send(FitnessMessage::Ready);
+		let fit_state_vec = initialize_tests(ind_comms.len() as u64);
+		ind_fitness(ind_comms,fit_state_vec,&mut average_size);
+		comm.send(FitnessMessage::PopFin);
+		info!("Finished Calculating Fitnesses");
+		comm.recv();
+
 	}
 
 }
 
+#[derive(Clone)]
+struct fitness_state
+{
+	pub problem_vec: Vec<(u64,u64)>,
+	pub receive_vec: Vec<u64>,
+	pub size: Option<u64>,
+	pub life: Option<u64>
 
-fn ind_fitness(mut comms: Vec<IndividualComm>)
+
+}
+
+fn initialize_tests(pop_count: u64) -> Vec<fitness_state>
+{
+	let mut fit_state_vec = Vec::new();
+	let repititions= 5;
+	let between = Range::new(0u64,1000);
+   	let mut rng = rand::thread_rng();
+
+	for i in 0..pop_count
+	{
+
+		let mut problem_vec: Vec<(u64,u64)> = Vec::new();
+		for i in 0..repititions
+		{
+			let test= (between.ind_sample(&mut rng),between.ind_sample(&mut rng));
+			problem_vec.push(test);
+		}
+		
+		let mut receive_vec: Vec<u64> = Vec::new();
+		fit_state_vec.push(fitness_state{ problem_vec: problem_vec, receive_vec: receive_vec, size: None, life: None});
+	}
+	fit_state_vec
+
+
+
+
+}
+
+fn ind_fitness(mut comms: Vec<BiChannel<StateIO>>,mut fit_state_vec: Vec<fitness_state>,average_size: &mut f64)
 {
 
-	let between = Range::new(5u64,10);
-   	let mut rng = rand::thread_rng();
-	let test= (between.ind_sample(&mut rng),between.ind_sample(&mut rng));
-	let mut fit_vec: Vec<u64> = std::iter::repeat(100000).take(comms.len()).collect::<Vec<_>>();;
-	let mut problem_vec: Vec<(u64,u64)> = std::iter::repeat(test).take(comms.len()).collect::<Vec<_>>();;
 
 
+
+	let pop_count = comms.len();
+	
 	let mut x=0;
 	for i in comms.iter_mut()
 	{
-		let (a,b)= problem_vec[x];
-		i.send_byte(StateIO::Data(a));
-		i.send_byte(StateIO::Data(b));
+
+		for (a,b) in fit_state_vec[x].problem_vec.clone()
+		{
+				i.send(StateIO::Data(a));
+				i.send(StateIO::Data(b));
+		}	
 		x+=1;
 
 	}
@@ -129,29 +185,56 @@ fn ind_fitness(mut comms: Vec<IndividualComm>)
 
 		if comms.len() == z
 		{
-			fit_vec.sort();
-			println!("best={}",fit_vec[0]);
+
 			break
 		}
 		let mut x=0;
+		let mut progress_made = false;
 		for mut i in comms.iter_mut()
 		{
 
-
-
-
-			match i.try_receive_byte()
+			
+			match i.try_recv()
 			{
-				Ok(p) => match p
-				{
-					//fix
-					StateIO::Done => {i.send_byte(StateIO::Fitness(fit_vec[x])); z+=1;},
-					StateIO::Data(y)=> {
-								let (a,b)= problem_vec[x];
-								fit_vec[x] = (a+b).wrapping_sub(y);
-								//println!("a={0}, b={1}, data={2}",a,b,y)
+				Ok(p) =>
+				{ 
+					progress_made = true;
+					match p
+					{
+						StateIO::Done => {
+								
+									fit_state_vec[x].size = Some(match i.recv()
+									{
+										Ok(p) => match p
+										{
+												StateIO::SizeGraph(x) => x,
+												_=> panic!("invalid message")
+										},
+										Err(_)=> panic!("Dropped Comms")
+									
+									});
+									fit_state_vec[x].life = Some(match i.recv()
+									{
+										Ok(p) => match p
+										{
+												StateIO::Life(x) => x,
+												_=> panic!("invalid message")
+										},
+										Err(_)=> panic!("Dropped Comms")
+									
+									});
+
+									let fitness = fitness_calc(fit_state_vec[x].clone(),average_size,pop_count as u64);
+									i.send(StateIO::Fitness(fitness));
+									z+=1;
+
+
 								},
-					_=>(),
+						StateIO::Data(y)=> {
+									fit_state_vec[x].receive_vec.push(y);
+								    },
+						_=>(),
+					}
 				},
 				Err(e) => match e
 				{
@@ -166,12 +249,75 @@ fn ind_fitness(mut comms: Vec<IndividualComm>)
 
 			
 		}
-		thread::sleep_ms(50);
+		debug!("waiting for {} to finish",comms.len() -z);
+		if !progress_made
+		{
+			debug!("No progress made");
+			thread::sleep_ms(5);
+		}
 
 	}
 
 
 
 }
+
+fn fitness_calc(fit_state: fitness_state, average_size: &mut f64, pop_count: u64 ) -> u64
+{
+	let size = fit_state.size.unwrap();
+	let life = fit_state.life.unwrap();
+	*average_size = (*average_size * (pop_count -1) as f64 +  size as f64) /pop_count as f64;
+
+	let mut cumm_fit=0;
+	if life == 0
+	{
+		return 900000
+	}
+
+
+
+	for i in 0..fit_state.problem_vec.len()
+	{
+
+		let (a,b) = fit_state.problem_vec[i];
+
+		if i < fit_state.receive_vec.len()
+		{
+			let result = fit_state.receive_vec[i];
+			let fit_percent = 100.0* (( a + b ) as i64 -fit_state.receive_vec[i] as i64).abs() as f64/(a+b) as f64;
+	
+
+			cumm_fit += fit_percent as u64;
+		}
+		else
+		{
+			cumm_fit += 100;
+
+		}
+	}
+
+
+	//difference is a percent so 30 is 30% bigger, 100 is 100% bigger
+	let difference = 100.0* (size as f64 - *average_size) / *average_size;
+
+	//0.943989 b increased slightly from correct/perfect value for a bit of safety in rounding
+
+	let a:f64=5.; let b: f64 =0.0; let k: f64=0.0230259;
+
+	//a*e^(k*x)+b
+	//plug three points that you want on the curve into an equation solver.
+	//this example uses 0,1 30,2 100,1000 to get a shallow penalty till 30, afterwards it swiftly grows
+
+	//0,2 30,5 100,1000
+	let penalty: f64 = a*(k*difference).exp()+b;
+
+	//println!("penalty={}, size={1}, average = {2}",penalty,size,*average_size);
+
+	let mut final_fit = (cumm_fit) as u64 +penalty as u64+size as u64;
+
+
+	final_fit
+}
+
 
 

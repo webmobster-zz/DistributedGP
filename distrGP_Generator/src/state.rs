@@ -1,14 +1,10 @@
-use std::sync::mpsc::channel;
-use std::sync::mpsc::{Sender, Receiver};
-use std::sync::mpsc;
-use std::sync::{Arc, Mutex};
-
+use super::BiChannel;
 use super::Graph;
-
-
 
 use std::cmp::Ordering;
 use std::cmp::Ordering::{Less,Equal,Greater};
+use std::sync::{Arc, Mutex};
+
 
 pub enum StateIO
 {
@@ -30,8 +26,7 @@ pub struct GlobalState
 	pub life: Option<Arc<Mutex<u64>>>,
 
 	//mutable by multiple threads
-	pub input: Option<Arc<Mutex<Receiver<StateIO>>>>,
-	pub output: Option<Arc<Mutex<Sender<StateIO>>>>,
+	pub comm: Option<Arc<Mutex<BiChannel<StateIO>>>>,
 	pub thread_count: Option<Arc<Mutex<u64>>>,
 
 
@@ -44,7 +39,7 @@ impl Clone for GlobalState
 {
 	fn clone(&self) ->GlobalState
 	{
-		GlobalState{vec: self.vec.clone(), input: self.input.clone(), output: self.output.clone(), life: self.life.clone(),graph: self.graph.clone(),thread_count: self.thread_count.clone(),fitness: self.fitness.clone()}
+		GlobalState{vec: self.vec.clone(), comm: self.comm.clone(), life: self.life.clone(),graph: self.graph.clone(),thread_count: self.thread_count.clone(),fitness: self.fitness.clone()}
 	}
 
 }
@@ -56,7 +51,7 @@ impl GlobalState
 	pub fn new(memory: Vec<u64>, graph: Graph) -> GlobalState
 	{
 
-		GlobalState{vec: Arc::new(Mutex::new(memory)), input: None, output: None, life: None,graph:  Arc::new(Mutex::new(graph)), fitness: None, thread_count: None}
+		GlobalState{vec: Arc::new(Mutex::new(memory)), comm: None, life: None,graph:  Arc::new(Mutex::new(graph)), fitness: None, thread_count: None}
 
 	}
 	//drops input, output and threadcount
@@ -70,22 +65,18 @@ impl GlobalState
 
 		let fitness =self.fitness.clone().unwrap();
 		let fitnesslock= fitness.lock().unwrap();
-		panic!("Is this used?");
-		GlobalState{vec: Arc::new(Mutex::new(veclock.clone())), input: None, output: None, life: Some(Arc::new(Mutex::new(lifelock.clone()))),graph:  Arc::new(Mutex::new(graphlock.clone())), thread_count: None,fitness: Some(Arc::new(Mutex::new(fitnesslock.clone())))}
+		GlobalState{vec: Arc::new(Mutex::new(veclock.clone())), comm: None, life: Some(Arc::new(Mutex::new(lifelock.clone()))),graph:  Arc::new(Mutex::new(graphlock.clone())), thread_count: None,fitness: Some(Arc::new(Mutex::new(fitnesslock.clone())))}
 	}
 
-	pub fn initialize(&mut self,life: u64) ->(Sender<StateIO>,Receiver<StateIO>)
+	pub fn initialize(&mut self,life: u64, ) -> BiChannel<StateIO>
 	{
 
-		let (input_tx,input_rx) = channel();
-		let (output_tx,output_rx) = channel();
-		self.input= Some(Arc::new(Mutex::new(input_rx)));
-		self.output= Some(Arc::new(Mutex::new(output_tx)));
+		let (end_one,end_two) = BiChannel::new();
+		self.comm= Some(Arc::new(Mutex::new(end_one)));
 		self.life=Some(Arc::new(Mutex::new(life)));
 		self.thread_count = Some(Arc::new(Mutex::new(0)));
 		self.fitness=Some(Arc::new(Mutex::new(0)));
-		(input_tx,output_rx)
-
+		end_two
 	}
 	pub fn unique_graphvec_copy(&self) -> (Graph,Vec<u64>)
 	{
@@ -100,6 +91,7 @@ impl GlobalState
 		let lockfit =  *fitness.lock().unwrap();
 		lockfit
 	}
+
 }
 
 

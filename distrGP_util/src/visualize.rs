@@ -1,6 +1,7 @@
-extern crate dot;
+extern crate graphviz;
+use self::graphviz as dot;
 use std::io::Write;
-use super::Graph;
+use super::distrgp_generator::Graph;
 
 
 type Nd<'a> = (usize);

@@ -1,6 +1,6 @@
 [package]
 
-name = "distrGP"
+name = "distrgp_testimpl"
 version = "0.0.1"
 authors = ["Edward Clarke <webmobster@gmail.com>"]
 description = "Experimental GP project"
@@ -18,14 +18,17 @@ dot = "0.0.4"
 env_logger = "0.3.1"
 log= "*"
 
-[dependencies.distrGP_Generator]
+[dependencies.distrgp_generator]
 path = "./distrGP_Generator"
 
 [dependencies.distrGP_ProvidedOperators]
 path = "./distrGP_ProvidedOperators"
 
-[dependencies.distr_gp_evaluator]
+[dependencies.distrgp_evaluator]
 path = "./distrGP_Evaluator"
+
+[dependencies.distrgp_util]
+path = "./distrGP_util"
 
 # The development profile, used for `cargo build`
 [profile.dev]

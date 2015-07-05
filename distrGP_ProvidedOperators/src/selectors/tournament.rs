@@ -1,9 +1,9 @@
 extern crate rand;
-extern crate distrGP_Generator;
+extern crate distrgp_generator;
 
-use self::distrGP_Generator::Graph;
-use self::distrGP_Generator::Selector;
-use self::distrGP_Generator::GlobalState;
+use self::distrgp_generator::Graph;
+use self::distrgp_generator::Selector;
+use self::distrgp_generator::GlobalState;
 
 use self::rand::distributions::{IndependentSample, Range};
 

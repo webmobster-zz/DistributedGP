@@ -1,6 +1,6 @@
 [package]
 
-name = "distr_gp_evaluator"
+name = "distrgp_evaluator"
 version = "0.0.1"
 authors = ["Edward Clarke <webmobster@gmail.com>"]
 description = "Experimental GP project"
@@ -16,11 +16,11 @@ rand = "0.3.8"
 log = "*"
 
 
-[dependencies.distrGP_Generator]
+[dependencies.distrgp_generator]
 path = "../distrGP_Generator"
 
 [lib]
-name = "distr_gp_evaluator"
+name = "distrgp_evaluator"
 
 
 

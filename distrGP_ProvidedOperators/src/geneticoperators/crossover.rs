@@ -1,10 +1,10 @@
 extern crate rand;
-extern crate distrGP_Generator;
+extern crate distrgp_generator;
 
-use self::distrGP_Generator::Graph;
-use self::distrGP_Generator::Node;
-use self::distrGP_Generator::OperatorMap;
-use self::distrGP_Generator::GeneticOperator;
+use self::distrgp_generator::Graph;
+use self::distrgp_generator::Node;
+use self::distrgp_generator::OperatorMap;
+use self::distrgp_generator::GeneticOperator;
 
 
 use self::rand::distributions::{IndependentSample, Range};
@@ -99,11 +99,11 @@ impl GeneticOperator for TreeCross
 			
 
 			//should only occur in loops
-			if current_put_index< working_graph_parent_one.get_size()
+			if current_put_index < working_graph_parent_one.get_size()
 			{
 				increase_graph_size=false;
 			}
-			else if(working_graph_parent_one.get_size()) ==current_put_index
+			else if working_graph_parent_one.get_size() == current_put_index
 			{
 
 				increase_graph_size=true;

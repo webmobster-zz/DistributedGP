@@ -1,6 +1,6 @@
 [package]
 
-name = "distrGP_Generator"
+name = "distrgp_generator"
 version = "0.0.1"
 authors = ["Edward Clarke <webmobster@gmail.com>"]
 description = "Experimental GP project"
@@ -15,7 +15,7 @@ license = "Private for now"
 rand = "0.3.8"
 
 [lib]
-name = "distrGP_Generator"
+name = "distrgp_generator"
 
 
 

@@ -1,11 +1,11 @@
 extern crate rand;
 
-extern crate distrGP_Generator;
+extern crate distrgp_generator;
 extern crate distrGP_ProvidedOperators;
 
 
-use self::distrGP_Generator::Selector;
-use self::distrGP_Generator::OperatorMap;
+use self::distrgp_generator::Selector;
+use self::distrgp_generator::OperatorMap;
 
 use std::collections::HashSet;
 
