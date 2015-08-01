@@ -9,13 +9,14 @@ extern crate distrgp_generator;
 mod pool;
 
 use std::sync::{Arc, Mutex};
+use std::io::Read;
 
-use self::distrgp_generator::Generator;
-use self::distrgp_generator::BiChannel;
-use self::distrgp_generator::OperatorMap;
-use self::distrgp_generator::GlobalState;
-use self::distrgp_generator::LocalState;
-use self::distrgp_generator::StateIO;
+use distrgp_generator::Generator;
+use distrgp_generator::BiChannel;
+use distrgp_generator::OperatorMap;
+use distrgp_generator::GlobalState;
+use distrgp_generator::LocalState;
+use distrgp_generator::StateIO;
 
 use self::pool::ThreadPool;
 use self::pool::GreenThreadData;
@@ -35,7 +36,7 @@ pub enum FitnessMessage
 
 }
 #[allow(unused_variables)]
-pub fn init(mut generator: Generator, numthreads: u32, fitcomms: BiChannel<FitnessMessage>, utilcomms: BiChannel<UtilMessage>)
+pub fn init<T:Read>(mut generator: Generator<T>, numthreads: u32, fitcomms: BiChannel<FitnessMessage>, utilcomms: BiChannel<UtilMessage>)
 {
 
 	info!("started evaluator");
@@ -45,7 +46,7 @@ pub fn init(mut generator: Generator, numthreads: u32, fitcomms: BiChannel<Fitne
 
 
 
-
+	generator.initialize_operators();
 
 	generator.generate_graphs();
 

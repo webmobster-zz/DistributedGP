@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<operatorlist description="minimal basic integer set"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:noNamespaceSchemaLocation="operators.xsd">
+  <operator>
+    <!--<parts>PARTS</parts>-->
+    <!--<special_attributes>SP</special_attributes>-->
+    <sucessors>2</sucessors>
+    <cost>1</cost>
+    <UUID>1</UUID>
+    <description>Checks if local pointer equals 0</description>
+    <code>
+    <![CDATA[
+    {
+    	if local.general_pointer == 0
+    	{
+    		true
+    	}
+    	else
+    	{
+    		false
+    	}
+    }
+    ]]>
+    </code>
+  </operator>
+  <operator>
+    <sucessors>1</sucessors>
+    <cost>1</cost>
+    <UUID>2</UUID>
+    <description>Increment Local Pointer</description>
+    <code>
+    <![CDATA[
+    {
+    	local.general_pointer = local.general_pointer.wrapping_add(1);
+    	true
+    }
+    ]]>
+    </code>
+  </operator>
+  <operator>
+    <sucessors>1</sucessors>
+    <cost>1</cost>
+    <UUID>3</UUID>
+    <description>Decrement Local Pointer</description>
+    <code>
+    <![CDATA[
+    {
+    	local.general_pointer = local.general_pointer.wrapping_sub(1);
+    	true
+    }
+    ]]>
+    </code>
+  </operator>
+  <operator>
+    <sucessors>0</sucessors>
+    <cost>0</cost>
+    <UUID>4</UUID>
+    <description>End</description>
+    <code>
+    <![CDATA[
+    {
+    	true
+    }
+    ]]>
+    </code>
+  </operator>
+
+
+</operatorlist>
+<!--
+	map.insert([0,3],Operator::new(incr_array_pointer,None,2,1,SpecialOperator::None));
+	map.insert([0,4],Operator::new(decr_array_pointer,None,2,1,SpecialOperator::None));
+
+	map.insert([0,5],Operator::new(if_zero,None,2,1,SpecialOperator::None));
+
+	map.insert([0,6],Operator::new(copy_pointer_to_local,None,1,1,SpecialOperator::None));
+	map.insert([0,7],Operator::new(copy_local_to_pointer,None,1,1,SpecialOperator::None));
+
+	map.insert([0,9],Operator::new(get_input,None,2,1,SpecialOperator::None));
+	map.insert([0,10],Operator::new(send_output,None,1,100,SpecialOperator::None));
+	//map.insert([rng.gen::<u64>(); 2],Operator::new(split,None,2,100000,SpecialOperator::NewThread));
+
+
+//Memory and Util
+
+fn copy_pointer_to_local(global: &mut GlobalState, local: &mut LocalState) -> bool
+{
+
+	local.array[local.array_pointer] = local.general_pointer;
+	true
+}
+
+fn copy_local_to_pointer(global: &mut GlobalState, local: &mut LocalState) -> bool
+{
+
+	local.general_pointer= local.array[local.array_pointer];
+	true
+}
+
+fn split(global: &mut GlobalState, local: &mut LocalState) -> bool
+{
+	true
+}
+
+fn get_input(global: &mut GlobalState, local: &mut LocalState) -> bool
+{
+	let input = global.comm.clone().unwrap();
+	let lock = input.lock().unwrap();
+	match lock.try_recv()
+	{
+		Ok(x) => match x
+		{
+			StateIO::Data(y) => {local.general_pointer=y;true},
+			_=> panic!("Invalid Data"),
+		},
+		Err(e) => match e
+		{
+			TryRecvError::Empty=> {false},
+			TryRecvError::Disconnected => panic!("Dropped Comms")
+
+		}
+	}	
+
+}
+
+fn send_output(global: &mut GlobalState, local: &mut LocalState) -> bool
+{
+	let output = global.comm.clone().unwrap();
+	let lock = output.lock().unwrap();
+	match lock.send(StateIO::Data(local.general_pointer))
+	{
+		Ok(_) => {true},
+		_=> panic!("Dropped Comms")
+
+	}
+
+}
+
+
+
+
+fn incr_array_pointer(global: &mut GlobalState, local: &mut LocalState) -> bool
+{
+	if local.array_pointer < local.array.len() -1
+	{
+		local.array_pointer+=1;
+		true
+	}
+	else
+	{
+		false
+	}
+
+}
+
+fn decr_array_pointer(global: &mut GlobalState, local: &mut LocalState) -> bool
+{
+
+	if local.array_pointer > 0
+	{
+		local.array_pointer-=1;
+		true
+	}
+	else
+	{
+		false
+	}
+}
+-->
+
+

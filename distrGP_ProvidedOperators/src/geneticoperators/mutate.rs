@@ -538,43 +538,81 @@ impl GeneticOperator for Clean
 
 }
 
+
 /*
-pub fn tree_mutate(generator: & mut Generator) -> Graph
+#[derive(Debug,Clone)]
+pub struct TreeMutate
 {
 
-	let mut working_graph= selector.select();
-	
-	let mut working_graph= match selection_type
+	probability:f32,
+	depth: u64
+}
+
+impl TreeMutate
+{
+
+	pub fn new(probability: f32) -> TreeMutate
 	{
-				Tournament(k) => selector::tournament_selection(generator,k),
-				_ => panic!("unimplemented code")
-	};
-
-
-	//println!("before tree mutation: {:?}",working_graph); 
-
-
-	//fast but bad
-	let mut rng = rand::weak_rng();
-
-
-	let graph_length = Range::new(0, working_graph.list.len());
-
-	let working_index = graph_length.ind_sample(&mut rng);
-
-
-	//hard coded subtree size
-	working_graph.grow_new_subtree(&generator.operatorpointers,&generator.end_operators,working_index,5);
-
-
-	//working_graph.clean();
-
-	//println!("after tree mutation: {:?}",working_graph); 
-	working_graph
+		Clean{probability: probability}
+	}
 
 }
 
+impl GeneticOperator for TreeMutate
+{
 
+
+	fn get_copy(&self) ->  Box<GeneticOperator>
+	{
+
+		Box::new(self.clone()) as Box<GeneticOperator>
+	
+	}
+
+	fn get_probability(&self) ->  f32
+	{
+
+		self.probability
+	
+	}
+
+	fn operate(&self,  map: &mut OperatorMap,selector_closure: &Box<Fn() -> (Graph,Vec<u64>)>) -> Vec<(Graph,Vec<u64>)>
+	{
+
+		let mut working_graph= selector.select();
+	
+		let mut working_graph= match selection_type
+		{
+					Tournament(k) => selector::tournament_selection(generator,k),
+					_ => panic!("unimplemented code")
+		};
+
+
+		//println!("before tree mutation: {:?}",working_graph); 
+
+
+		//fast but bad
+		let mut rng = rand::weak_rng();
+
+
+		let graph_length = Range::new(0, working_graph.list.len());
+
+		let working_index = graph_length.ind_sample(&mut rng);
+
+
+		//hard coded subtree size
+		working_graph.grow_new_subtree(&generator.operatorpointers,&generator.end_operators,working_index,5);
+
+
+		//working_graph.clean();
+
+		//println!("after tree mutation: {:?}",working_graph); 
+		working_graph
+	}
+
+}
+*/
+/*
 pub fn point_remove(generator: & mut Generator) -> Graph
 {
 

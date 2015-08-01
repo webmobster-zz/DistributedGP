@@ -1,6 +1,7 @@
 #![deny(warnings)]
 
 extern crate rand;
+extern crate xml;
 
 
 pub use self::graph::Graph;
@@ -18,9 +19,14 @@ pub use self::state::GlobalState;
 pub use self::state::LocalState;
 pub use self::state::StateIO;
 
+pub use self::operator::UUID;
+
 pub use self::bichannel::BiChannel;
 
 use self::rand::Rng;
+use std::io::Read;
+use std::mem;
+
 
 
 
@@ -37,7 +43,7 @@ mod geneticoperator;
 //#[derive(Show,Clone)]
 #[allow(dead_code)]
 #[allow(non_snake_case)]
-pub struct Generator
+pub struct Generator<T: Read>
 {
 	popcount: u32,
 	graph_list: Vec<GlobalState>,
@@ -46,7 +52,8 @@ pub struct Generator
 	grow_operator: Box<GeneticOperator>,
 	selector: Box<selectortrait::Selector>,
 	life: u64,
-	population_UUID: [u64; 2]
+	population_UUID: [u64; 2],
+	operator_xml_buffer: Option<T>
 
 
 
@@ -55,9 +62,9 @@ pub struct Generator
 
 
 
-impl Generator
+impl<T: Read> Generator<T>
 {
-	pub fn init(popcount: u32, operators: OperatorMap,selector: Box<Selector>, crossmut:Vec<Box<GeneticOperator>>,grow_operator: Box<GeneticOperator>,life: u64) -> Generator
+	pub fn init(popcount: u32, operators: T,selector: Box<Selector>, crossmut:Vec<Box<GeneticOperator>>,grow_operator: Box<GeneticOperator>,life: u64) -> Generator<T>
 	{
 		
 		let graph = Vec::with_capacity(popcount as usize);
@@ -68,19 +75,22 @@ impl Generator
 				popcount:popcount,
 				graph_list:graph,
 
-				operatorpointers : operators, 
+				operatorpointers: OperatorMap::new(), 
 				crossmut: crossmut,
 				grow_operator: grow_operator,
 				selector: selector,
 
 				life: life,
-				population_UUID: [rng.gen::<u64>(); 2]
+				population_UUID: [rng.gen::<u64>(); 2],
+				operator_xml_buffer: Some(operators)
 			  };
 		assert!(generator.crossmut.len() > 0,"Need to select at least one crossover/mutation genetic operators");
 		assert!(generator.check_crossmut(),"Genetic Operator probabilties don't add up to 1.0");
 
 		generator
 	}
+
+	
 
 	fn check_crossmut(&self) -> bool
 	{
@@ -98,6 +108,17 @@ impl Generator
 		{
 			false
 		}
+	}
+
+	pub fn initialize_operators( &mut self)
+	{
+		//HACK
+		let mut temp = None;
+		mem::swap(& mut temp, &mut self.operator_xml_buffer);
+
+		let uncompiled_operators = operator::operator_compiler::read_xml(temp.unwrap());
+		println!("uncomp: {:?}", uncompiled_operators );
+
 	}
 
 	pub fn initialize_graphs( &mut self) -> Vec<BiChannel<StateIO>>

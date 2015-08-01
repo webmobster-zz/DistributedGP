@@ -1,6 +1,6 @@
 [package]
 
-name = "distrGP_ProvidedOperators"
+name = "distrgp_providedoperators"
 version = "0.0.1"
 authors = ["Edward Clarke <webmobster@gmail.com>"]
 description = "Experimental GP project"
@@ -20,7 +20,7 @@ log = "*"
 path = "../distrGP_Generator"
 
 [lib]
-name = "distrGP_ProvidedOperators"
+name = "distrgp_providedoperators"
 
 
 

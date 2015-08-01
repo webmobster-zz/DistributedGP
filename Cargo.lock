@@ -3,15 +3,20 @@ name = "distrgp_testimpl"
 version = "0.0.1"
 dependencies = [
  "csv 0.14.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "distrGP_ProvidedOperators 0.0.1",
  "distrgp_evaluator 0.0.1",
  "distrgp_generator 0.0.1",
+ "distrgp_providedoperators 0.0.1",
  "distrgp_util 0.0.1",
  "dot 0.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "bitflags"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "byteorder"
@@ -28,15 +33,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "distrGP_ProvidedOperators"
-version = "0.0.1"
-dependencies = [
- "distrgp_generator 0.0.1",
- "log 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "rand 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "distrgp_evaluator"
 version = "0.0.1"
 dependencies = [
@@ -49,6 +45,16 @@ dependencies = [
 name = "distrgp_generator"
 version = "0.0.1"
 dependencies = [
+ "rand 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "xml-rs 0.1.25 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "distrgp_providedoperators"
+version = "0.0.1"
+dependencies = [
+ "distrgp_generator 0.0.1",
+ "log 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -114,4 +120,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "rustc-serialize"
 version = "0.3.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "xml-rs"
+version = "0.1.25"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "bitflags 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 

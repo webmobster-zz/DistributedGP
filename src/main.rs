@@ -9,7 +9,7 @@
 
 extern crate rand;
 extern crate distrgp_evaluator;
-extern crate distrGP_ProvidedOperators;
+extern crate distrgp_providedoperators;
 extern crate distrgp_generator;
 extern crate distrgp_util;
 extern crate env_logger;
@@ -22,16 +22,17 @@ use distrgp_generator::Generator;
 use distrgp_generator::BiChannel;
 use distrgp_generator::StateIO;
 
-use distrGP_ProvidedOperators::geneticoperators::TreeCross;
-use distrGP_ProvidedOperators::geneticoperators::FlatCross;
-use distrGP_ProvidedOperators::geneticoperators::PointMutate;
-use distrGP_ProvidedOperators::geneticoperators::StandardGrow;
-use distrGP_ProvidedOperators::geneticoperators::Rewire;
-use distrGP_ProvidedOperators::geneticoperators::Clean;
-use distrGP_ProvidedOperators::geneticoperators::InsertNode;
+use distrgp_providedoperators::geneticoperators::TreeCross;
+use distrgp_providedoperators::geneticoperators::FlatCross;
+use distrgp_providedoperators::geneticoperators::PointMutate;
+use distrgp_providedoperators::geneticoperators::StandardGrow;
+use distrgp_providedoperators::geneticoperators::Rewire;
+use distrgp_providedoperators::geneticoperators::Clean;
+use distrgp_providedoperators::geneticoperators::InsertNode;
 use distrgp_evaluator::FitnessMessage;
 
-
+use std::fs::File;
+use std::io::BufReader;
 use std::sync::mpsc::TryRecvError;
 use std::sync::mpsc::channel;
 use std::thread;
@@ -62,24 +63,27 @@ fn main()
 	//names
 	let (fit_end_one, fit_end_two) = BiChannel::new();
 	let (util_end_one, util_end_two) = BiChannel::new();
+
+	let file = File::open("operators.xml").unwrap();
+	let file = BufReader::new(file);
 	thread::spawn(move || {
 		let problem_description = reader::readfile();
 
 		let generator = Generator::init(
 				
 				5000,
-				problem_description.get_operators(),
+				file,
 
 				problem_description.get_selector(),
-				vec!(	Box::new(TreeCross::new(0.25)) as Box<GeneticOperator>,
-					Box::new(FlatCross::new(0.05)) as Box<GeneticOperator>,
+				vec!(	Box::new(TreeCross::new(0.05)) as Box<GeneticOperator>,
+					Box::new(FlatCross::new(0.1)) as Box<GeneticOperator>,
 					Box::new(PointMutate::new(0.25)) as Box<GeneticOperator>,
 					Box::new(Rewire::new(0.25)) as Box<GeneticOperator>,
-					Box::new(Clean::new(0.1)) as Box<GeneticOperator>,
-					Box::new(InsertNode::new(0.1)) as Box<GeneticOperator>,
+					Box::new(Clean::new(0.05)) as Box<GeneticOperator>,
+					Box::new(InsertNode::new(0.3)) as Box<GeneticOperator>,
 					),
 				Box::new(StandardGrow::new(1.0,200)),
-				10000
+				1000000
 				);
 		distrgp_evaluator::init(generator,12,fit_end_two,util_end_two);
 	});
@@ -132,10 +136,12 @@ struct fitness_state
 
 fn initialize_tests(pop_count: u64) -> Vec<fitness_state>
 {
-	let mut fit_state_vec = Vec::new();
-	let repititions= 5;
-	let between = Range::new(0u64,1000);
    	let mut rng = rand::thread_rng();
+	let mut fit_state_vec = Vec::new();
+	let reps = Range::new(500u64,1000);
+	let repititions= reps.ind_sample(&mut rng);
+	let between = Range::new(200u64,1000);
+
 
 	for i in 0..pop_count
 	{
@@ -268,7 +274,7 @@ fn fitness_calc(fit_state: fitness_state, average_size: &mut f64, pop_count: u64
 	let life = fit_state.life.unwrap();
 	*average_size = (*average_size * (pop_count -1) as f64 +  size as f64) /pop_count as f64;
 
-	let mut cumm_fit=0;
+	let mut cumm_fit: f64=0.0;
 	if life == 0
 	{
 		return 900000
@@ -284,19 +290,27 @@ fn fitness_calc(fit_state: fitness_state, average_size: &mut f64, pop_count: u64
 		if i < fit_state.receive_vec.len()
 		{
 			let result = fit_state.receive_vec[i];
-			let fit_percent = 100.0* (( a + b ) as i64 -fit_state.receive_vec[i] as i64).abs() as f64/(a+b) as f64;
-	
+			let mut fit_percent = 100.0* (( a + b ) as i64 -fit_state.receive_vec[i] as i64).abs() as f64/(a+b) as f64;
+			fit_percent = fit_percent.powi(2);
 
-			cumm_fit += fit_percent as u64;
+			cumm_fit += fit_percent;
 		}
 		else
 		{
-			cumm_fit += 100;
+			cumm_fit += 10000.;
 
 		}
 	}
 
+	if fit_state.receive_vec.len() > fit_state.problem_vec.len()
+	{
+		cumm_fit+= 10000. * (fit_state.receive_vec.len() - fit_state.problem_vec.len()) as f64;
 
+	}
+
+
+	cumm_fit = cumm_fit/fit_state.problem_vec.len() as f64;
+	
 	//difference is a percent so 30 is 30% bigger, 100 is 100% bigger
 	let difference = 100.0* (size as f64 - *average_size) / *average_size;
 
@@ -313,7 +327,7 @@ fn fitness_calc(fit_state: fitness_state, average_size: &mut f64, pop_count: u64
 
 	//println!("penalty={}, size={1}, average = {2}",penalty,size,*average_size);
 
-	let mut final_fit = (cumm_fit) as u64 +penalty as u64+size as u64;
+	let mut final_fit = (cumm_fit*10.0) as u64 + penalty as u64 + size as u64;
 
 
 	final_fit

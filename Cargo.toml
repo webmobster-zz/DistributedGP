@@ -21,7 +21,7 @@ log= "*"
 [dependencies.distrgp_generator]
 path = "./distrGP_Generator"
 
-[dependencies.distrGP_ProvidedOperators]
+[dependencies.distrgp_providedoperators]
 path = "./distrGP_ProvidedOperators"
 
 [dependencies.distrgp_evaluator]

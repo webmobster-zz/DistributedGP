@@ -7,10 +7,8 @@ mod visualize;
 use self::distrgp_generator::BiChannel;
 use self::distrgp_generator::GlobalState;
 use self::distrgp_evaluator::UtilMessage;
-use self::distrgp_generator::Graph;
 
 use std::io;
-use std::fs;
 use std::fs::File;
 use std::path::Path;
 use std::thread;
@@ -35,7 +33,7 @@ pub fn util_placeholder_runner(comms: BiChannel<UtilMessage>)
 				{
 					Ok(string)=> { 
 						 	if string == "sg\n" { 		println!("save graph");
-										   	comms.send(UtilMessage::RequestData);
+										   	assert!(comms.send(UtilMessage::RequestData).is_ok());
 											let mut graphs;
 											match comms.recv()
 											{

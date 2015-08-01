@@ -2,7 +2,7 @@
 
 extern crate rand; 
 
-
+use super::UUID;
 use std::cmp::min;
 use std::cmp::max;
 
@@ -14,7 +14,7 @@ pub struct Graph
 }
 
 #[derive(Clone,Debug)]
-pub struct Node( pub [u64;2],pub Option<usize>,pub Option<usize>);
+pub struct Node( pub UUID,pub Option<usize>,pub Option<usize>);
 
 
 
@@ -51,7 +51,7 @@ impl Graph
 
 
 
-	pub fn get_operator(&self, mut index: usize) -> [u64;2]
+	pub fn get_operator(&self, mut index: usize) -> UUID
 	{
 		index = index % self.list.len();
 

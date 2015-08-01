@@ -1,11 +1,29 @@
-extern crate rand;
-
-
 use std::collections::HashMap;
-use self::rand::distributions::{IndependentSample, Range};
+use rand::distributions::{IndependentSample, Range};
 use super::GlobalState;
 use super::LocalState;
 use rand::Rng;
+use std::str::FromStr;
+
+pub mod operator_compiler;
+
+#[derive(Clone,Debug,Copy,Eq,PartialEq,Hash)]
+pub struct UUID {x: [u64;2]}
+impl FromStr for UUID {
+	type Err = ();
+
+            #[inline]
+            #[allow(deprecated)]
+            fn from_str(src: &str) -> Result<Self, ()> {
+		let mut split = src.split(",");
+                let part1 = split.next().unwrap();
+		let part2 = split.next().unwrap();
+		Ok(UUID{x:[part1.parse::<u64>().unwrap(),part2.parse::<u64>().unwrap()]})
+		
+            }
+}
+
+
 
 #[derive(Clone,Debug,Copy)]
 pub enum SpecialOperator
@@ -72,19 +90,19 @@ impl Clone for Operator
 }
 
 //#[derive(Debug,Clone)]
-pub type OperatorMap = HashMap<[u64;2],Operator>;
+pub type OperatorMap = HashMap<UUID,Operator>;
 
 pub trait RandomKey
 {
-	fn random_key<R: Rng>(&self,rng: &mut R) ->[u64;2];
-	fn random_key_with_successors<R: Rng>(&self,rng: &mut R, suc: u8) ->Result<[u64;2],()>;
+	fn random_key<R: Rng>(&self,rng: &mut R) ->UUID;
+	fn random_key_with_successors<R: Rng>(&self,rng: &mut R, suc: u8) ->Result<UUID,()>;
 }
 
 
 impl RandomKey for OperatorMap
 {
 
-	fn random_key<R: Rng>(&self,rng: &mut R) ->[u64;2]
+	fn random_key<R: Rng>(&self,rng: &mut R) ->UUID
 	{
 
 
@@ -107,7 +125,7 @@ impl RandomKey for OperatorMap
 
 	}
 
-	fn random_key_with_successors<R: Rng>(&self,rng: &mut R, suc: u8) ->Result<[u64;2],()>
+	fn random_key_with_successors<R: Rng>(&self,rng: &mut R, suc: u8) ->Result<UUID,()>
 	{
 
 		let mut operators = Vec::new();
