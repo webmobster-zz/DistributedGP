@@ -12,7 +12,7 @@ keywords = ["GP", "Genetic Programming", "Machine Learning", "ML"]
 license = "Private for now"
 
 [dependencies]
-rand = "0.3.8"
+rand = "*"
 log = "*"
 
 

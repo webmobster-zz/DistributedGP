@@ -111,8 +111,8 @@ impl PartialOrd for GlobalState
 
 	fn partial_cmp(&self, other: &GlobalState) -> Option<Ordering>
 	{
-		let mut lockself: u64;
-		let mut lockother: u64;
+		let lockself: u64;
+		let lockother: u64;
 		{
 			let fitness_self = self.fitness.clone().unwrap();
 			lockself =  *fitness_self.lock().unwrap();
@@ -139,8 +139,8 @@ impl PartialEq for GlobalState
 
 	fn  eq(&self, other: &GlobalState) -> bool
 	{
-		let mut lockself: u64;
-		let mut lockother: u64;
+		let lockself: u64;
+		let lockother: u64;
 		{
 			let fitness_self = self.fitness.clone().unwrap();
 			lockself =  *fitness_self.lock().unwrap();
@@ -166,8 +166,8 @@ impl Ord for GlobalState
 	{
 
 
-		let mut lockself: u64;
-		let mut lockother: u64;
+		let lockself: u64;
+		let lockother: u64;
 		{
 			let fitness_self = self.fitness.clone().unwrap();
 			lockself =  *fitness_self.lock().unwrap();

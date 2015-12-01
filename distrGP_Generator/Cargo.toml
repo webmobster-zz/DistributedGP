@@ -13,7 +13,9 @@ license = "Private for now"
 
 [dependencies]
 rand = "*"
-xml-rs = "*"
+serde = "*"
+serde_json = "*"
+serde_macros = "*"
 tempfile = "*"
 
 [lib]

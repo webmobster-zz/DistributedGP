@@ -108,7 +108,7 @@ impl RandomKey for OperatorMap
 
 		let operator_count = Range::new(0, self.len());
 		let rand = operator_count.ind_sample(rng);
-		let mut key;
+		let key;
 		let mut x =0;
 		for i in self.keys()
 		{

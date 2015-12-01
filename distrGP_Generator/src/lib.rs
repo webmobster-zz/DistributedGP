@@ -117,7 +117,8 @@ impl<T: Read> Generator<T>
 		mem::swap(& mut temp, &mut self.operator_xml_buffer);
 
 		let uncompiled_operators = operator::operator_compiler::read_xml(temp.unwrap());
-		println!("uncomp: {:?}", uncompiled_operators );
+		let test = operator::operator_compiler::compile_operators(uncompiled_operators,"/home/ed/distrgp/test/".to_string(),0);
+		println!("uncomp: {:?}", test);
 
 	}
 

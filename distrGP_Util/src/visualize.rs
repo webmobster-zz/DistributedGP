@@ -1,5 +1,5 @@
-extern crate graphviz;
-use self::graphviz as dot;
+extern crate dot;
+
 use std::io::Write;
 use super::distrgp_generator::Graph;
 

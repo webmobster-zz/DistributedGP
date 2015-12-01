@@ -1,4 +1,3 @@
-#![feature(rustc_private)]
 extern crate distrgp_evaluator;
 extern crate distrgp_generator;
 

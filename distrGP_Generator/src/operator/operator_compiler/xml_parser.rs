@@ -1,33 +1,24 @@
 use xml::reader::EventReader;
-use xml::reader::events::*;
+use xml::reader::XmlEvent;
 use xml::reader::ParserConfig;
 use std::io::Read;
 use super::UUID;
-use std::str::FromStr;
+use super::UncompiledOperator;
+use super::TempVecUUID;
 
-#[derive(Debug)]
-pub struct UncompiledOperator
-{
-	pub code: String,
-	pub description: String,
-	pub parts: Option<Vec<UUID>>,
-	pub sucessors: u8,
-	pub cost: u64,
-	pub uuid: UUID,
-	pub special: Option<String>
 
-}
 
-pub struct TempVecUUID {x: Vec<UUID>}
 
+
+//TODO: Remove all unwraps
 pub fn read_xml<T: Read>(file: T) -> Vec<UncompiledOperator>
 {
 	let config = ParserConfig::new()
    	 .trim_whitespace(true)
    	 .ignore_comments(true);
-	let mut parser = EventReader::with_config(file,config);
+	let mut parser = EventReader::new_with_config(file,config);
 	let mut op_vec = Vec::new();
-	match parser.next()
+	match parser.next().unwrap()
 	{
 			XmlEvent::StartDocument{..} =>
 			{
@@ -35,7 +26,7 @@ pub fn read_xml<T: Read>(file: T) -> Vec<UncompiledOperator>
 			element => panic!("invalid xml expected start document got: {:?}", element)
 	}
 
-	match parser.next()
+	match parser.next().unwrap()
 	{
 			XmlEvent::StartElement { ref name, .. } if name.local_name == "operatorlist" =>
 			{
@@ -43,7 +34,7 @@ pub fn read_xml<T: Read>(file: T) -> Vec<UncompiledOperator>
 			element => return panic!("invalid xml expected operator list start element got: {:?}", element)
 	}
 
-	while match parser.next()
+	while match parser.next().unwrap()
 		{
 				XmlEvent::StartElement { ref name, .. } if name.local_name == "operator" =>
 				{
@@ -108,7 +99,7 @@ fn parse_operator<T: Read>(mut parser: &mut EventReader<T>) -> Result<Uncompiled
 {
 	let mut code = None; let mut description = None; let mut parts = None;let mut uuid: Option<String> = None;
 	let mut sucessors: Option<String> = None; let mut cost: Option<String> = None; let mut special= None;
-	while match parser.next()
+	while match parser.next().unwrap()
 		{
 				XmlEvent::StartElement { name, .. } =>
 				{
@@ -240,34 +231,16 @@ fn parse_operator<T: Read>(mut parser: &mut EventReader<T>) -> Result<Uncompiled
 
 }
 
-impl FromStr for TempVecUUID {
 
-	type Err = ();
-
-            #[inline]
-            #[allow(deprecated)]
-            fn from_str(src: &str) -> Result<Self, ()> {
-		let split = src.split(";");
-		let mut vec = Vec::new();
-		for e in split
-		{
-			vec.push(e.parse::<UUID>().unwrap());
-
-		}
-		Ok(TempVecUUID{x: vec})
-		
-            }
-
-}
 fn parse_chars<T: Read>(parser: &mut EventReader<T>) -> Result<String,String>
 {
 	
- 		match parser.next()
+ 		match parser.next().unwrap()
 		{
 				XmlEvent::Characters(chars) => 
 				{
 
-					match parser.next()
+					match parser.next().unwrap()
 					{
 
 						XmlEvent::EndElement{..}=> (),
@@ -285,12 +258,12 @@ fn parse_chars<T: Read>(parser: &mut EventReader<T>) -> Result<String,String>
 
 fn parse_cdata<T: Read>(parser: &mut EventReader<T>) -> Result<String,String>
 {
-	match parser.next()
+	match parser.next().unwrap()
 		{
 				XmlEvent::CData(chars) => 
 				{
 
-					match parser.next()
+					match parser.next().unwrap()
 					{
 
 						XmlEvent::EndElement{..}=> (),
@@ -306,33 +279,4 @@ fn parse_cdata<T: Read>(parser: &mut EventReader<T>) -> Result<String,String>
 }
 
 
-fn compile_operators(op_list: Vec<UncompiledOperator>) -> String
-{
-	let file = 
 
-}
-/*
-fn load_operators(map: &mut OperatorMap)
-{
-
-
-}
-
-
-fn combine_operators()
-{
-
-
-}
-fn parse_operators()
-{
-
-
-}
-
-fn open_operators_dylib()
-{
-
-
-}
-*/

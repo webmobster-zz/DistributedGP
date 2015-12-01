@@ -12,10 +12,10 @@ keywords = ["GP", "Genetic Programming", "Machine Learning", "ML"]
 license = "Private for now"
 
 [dependencies]
-rand = "0.3.8"
-csv = "0.14.2"
-dot = "0.0.4"
-env_logger = "0.3.1"
+rand = "*"
+csv = "*"
+dot = "*"
+env_logger = "*"
 log= "*"
 
 [dependencies.distrgp_generator]
@@ -28,7 +28,7 @@ path = "./distrGP_ProvidedOperators"
 path = "./distrGP_Evaluator"
 
 [dependencies.distrgp_util]
-path = "./distrGP_util"
+path = "./distrGP_Util"
 
 # The development profile, used for `cargo build`
 [profile.dev]
