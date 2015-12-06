@@ -77,7 +77,7 @@ impl GlobalState
 		let (end_one,end_two) = BiChannel::new();
 		self.comm= Some(Arc::new(Mutex::new(end_one)));
 		self.life=Some(Arc::new(Mutex::new(life)));
-		self.thread_count = Some(Arc::new(Mutex::new(0)));
+		self.thread_count = Some(Arc::new(Mutex::new(1)));
 		self.fitness=Some(Arc::new(Mutex::new(0)));
 		end_two
 	}

@@ -1,0 +1,11 @@
+[
+  {
+    "path":"C:\\Users\\Ed\\genetic\\DistributedGP\\src\\operators\\addition.rs",
+    "description": "additions ",
+    "sucessors": 0,
+    "cost": 45,
+    "uuid": "43,43",
+    "special": "None"
+
+  }
+]

@@ -64,7 +64,7 @@ fn main() {
     //names
     let (fit_end_one, fit_end_two) = BiChannel::new();
     let (util_end_one, util_end_two) = BiChannel::new();
-    let file = "sddssd".to_string();
+    let file = "C:\\Users\\Ed\\genetic\\DistributedGP\\src\\operators.json".to_string();
 
     let tree_cross = TreeCross::new(0.05);
     let flat_cross = FlatCross::new(0.1);

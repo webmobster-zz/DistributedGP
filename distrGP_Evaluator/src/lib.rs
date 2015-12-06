@@ -154,7 +154,6 @@ fn iterate_over_entity(pop: &mut Vec<GlobalState>,
         let working_graph = (&mut **pop).get_mut(i).unwrap();
 
         let initial_local_state = LocalState::new();
-
         let green = GreenThreadData::new(working_graph.clone(), initial_local_state, map.clone());
         let pool_clone = pool.clone();
 
