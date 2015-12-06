@@ -22,6 +22,9 @@ pub struct GlobalState
 {
 	//Persistant after evaluation and after selection and mutable by multiple threads
 	pub vec: Arc<Mutex<Vec<u64>>>,
+
+	//TODO: Is not mutable so arc mutex is overkill try and put a pointer to the graph in one of
+	//of the states or worst comes to worse a copy of the graph list in each state
 	pub graph: Arc<Mutex<Graph>>,
 	pub life: Option<Arc<Mutex<u64>>>,
 
@@ -32,7 +35,7 @@ pub struct GlobalState
 
 	//Persistant after evaluation but not after selection
 	pub fitness: Option<Arc<Mutex<u64>>>,
-	
+
 }
 
 impl Clone for GlobalState
@@ -97,7 +100,7 @@ impl GlobalState
 
 //These are all to allow sorting based on fitness
 
-//This is probably a bad idea
+//FIXME: This is probably a bad idea
 
 
 //Need to remeber to not deadlock if self and other are the same
@@ -116,7 +119,7 @@ impl PartialOrd for GlobalState
 		{
 			let fitness_self = self.fitness.clone().unwrap();
 			lockself =  *fitness_self.lock().unwrap();
-			 
+
 		}
 		{
 			let fitness_other = other.fitness.clone().unwrap();
@@ -144,7 +147,7 @@ impl PartialEq for GlobalState
 		{
 			let fitness_self = self.fitness.clone().unwrap();
 			lockself =  *fitness_self.lock().unwrap();
-			 
+
 		}
 		{
 			let fitness_other = other.fitness.clone().unwrap();
@@ -171,7 +174,7 @@ impl Ord for GlobalState
 		{
 			let fitness_self = self.fitness.clone().unwrap();
 			lockself =  *fitness_self.lock().unwrap();
-			 
+
 		}
 		{
 			let fitness_other = other.fitness.clone().unwrap();
@@ -197,7 +200,7 @@ pub struct LocalState
 	pub array_pointer: usize,
 	pub general_pointer: u64
 
-	
+
 }
 
 impl LocalState
@@ -219,5 +222,3 @@ impl Clone for LocalState
 	}
 
 }
-
-

@@ -1,6 +1,6 @@
 //Holds the algorithms type
 
-extern crate rand; 
+extern crate rand;
 
 use super::UUID;
 use std::cmp::min;
@@ -29,10 +29,10 @@ impl Graph
 		Graph{list: Vec::new()}
 	}
 
-	
 
 
-	
+
+
 
 
 
@@ -55,7 +55,7 @@ impl Graph
 	{
 		index = index % self.list.len();
 
-		
+
 		let op =match self.list[index]
 		{
 			Node(ref op, _,_) => op,
@@ -85,7 +85,7 @@ impl Graph
 
 		let mut x=start;
 		for i in 0 .. slice.len()
-		{	
+		{
 
 			x = x +1;
 
@@ -112,7 +112,7 @@ impl Graph
 
 
 
-	
+
 
 	pub fn get_labeled_nodes(& self) -> Vec<String>
 	{
@@ -121,7 +121,7 @@ impl Graph
 		let s = format!("{{begining:{:?}}}",self.get_operator(0));
 		labels.push(s);
 
-		for i in (1 .. self.list.len())
+		for i in 1 .. self.list.len()
 		{
 
 			let s = format!("{{{:?}}}",self.get_operator(i));
@@ -152,11 +152,11 @@ impl Graph
 				edges.push((i, (suc1.unwrap())  % self.list.len() ,None));
 
 			}
-			
 
-			
 
-			
+
+
+
 
 
 		}
@@ -194,5 +194,3 @@ impl Graph
 
 
 }
-
-

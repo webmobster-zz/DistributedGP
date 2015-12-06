@@ -9,7 +9,6 @@ mod execution_loop;
 
 use threadpool::ThreadPool;
 use std::sync::{Arc, Mutex};
-use std::io::Read;
 
 use distrgp_generator::Generator;
 use distrgp_generator::BiChannel;
@@ -53,7 +52,7 @@ pub enum FitnessMessage {
     Finish,
 }
 #[allow(unused_variables)]
-pub fn init<T: Read>(mut generator: Generator<T>,
+pub fn init(mut generator: Generator,
                      numthreads: u32,
                      fitcomms: BiChannel<FitnessMessage>,
                      utilcomms: BiChannel<UtilMessage>) {
@@ -65,8 +64,6 @@ pub fn init<T: Read>(mut generator: Generator<T>,
 
 
 
-    generator.initialize_operators();
-
     generator.generate_graphs();
 
 
@@ -74,6 +71,7 @@ pub fn init<T: Read>(mut generator: Generator<T>,
 
 
 
+    //TODO: thread number variable
     let pool = Arc::new(Mutex::new(ThreadPool::new(4)));
 
 

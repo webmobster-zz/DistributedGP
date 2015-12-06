@@ -18,9 +18,13 @@ extern crate log;
 
 use log::{LogRecord, LogLevel, LogMetadata};
 use distrgp_generator::GeneticOperator;
+use distrgp_generator::Compiler;
 use distrgp_generator::Generator;
 use distrgp_generator::BiChannel;
 use distrgp_generator::StateIO;
+use distrgp_generator::LocalState;
+use distrgp_generator::GlobalState;
+
 
 use distrgp_providedoperators::geneticoperators::TreeCross;
 use distrgp_providedoperators::geneticoperators::FlatCross;
@@ -41,7 +45,6 @@ use std::sync::mpsc::{Sender, Receiver};
 
 use rand::distributions::{IndependentSample, Range};
 
-mod reader;
 
 
 
@@ -50,37 +53,44 @@ fn main() {
     env_logger::init().unwrap();
 
     info!("init");
-	//Basic commandline arguments, expand later
+    //Basic commandline arguments, expand later
 
 
-	//read problem description file
-
-
+    //read problem description file
 
 
 
-	//names
+    let selector = ::distrgp_providedoperators::selectors::Tournament::new(2);
+    //names
     let (fit_end_one, fit_end_two) = BiChannel::new();
     let (util_end_one, util_end_two) = BiChannel::new();
+    let file = "sddssd".to_string();
 
-    let file = File::open("operators.xml").unwrap();
-    let file = BufReader::new(file);
+    let tree_cross = TreeCross::new(0.05);
+    let flat_cross = FlatCross::new(0.1);
+    let point_mutate = PointMutate::new(0.25);
+    let rewire = Rewire::new(0.25);
+    let clean = Clean::new(0.05);
+    let insert_node = InsertNode::new(0.3);
+    let grow =  StandardGrow::new(1.0, 200);
+    let dummy_thing = dummy_compiler;
+
+
     thread::spawn(move || {
-                           let problem_description = reader::readfile();
 
                            let generator = Generator::init(5000,
                                                            file,
-
-                                                           problem_description.get_selector(),
-                                                           vec!(	Box::new(TreeCross::new(0.05)) as Box<GeneticOperator>,
-					Box::new(FlatCross::new(0.1)) as Box<GeneticOperator>,
-					Box::new(PointMutate::new(0.25)) as Box<GeneticOperator>,
-					Box::new(Rewire::new(0.25)) as Box<GeneticOperator>,
-					Box::new(Clean::new(0.05)) as Box<GeneticOperator>,
-					Box::new(InsertNode::new(0.3)) as Box<GeneticOperator>,
-					),
-                                                           Box::new(StandardGrow::new(1.0, 200)),
-                                                           1000000);
+                                                           &selector,
+                                                           vec!(    &tree_cross as &GeneticOperator,
+                                                                    &flat_cross as &GeneticOperator,
+                                                                    &point_mutate as &GeneticOperator,
+                                                                    &rewire as &GeneticOperator,
+                                                                    &clean as &GeneticOperator,
+                                                                    &insert_node as &GeneticOperator,
+                                                            ),
+                                                            &grow,
+                                                           1000000,
+                                                            &dummy_thing);
                            distrgp_evaluator::init(generator, 12, fit_end_two, util_end_two);
                        });
     thread::spawn(move || {
@@ -91,6 +101,21 @@ fn main() {
     loop {}
 
 
+}
+
+struct dummy_compiler;
+
+impl Compiler for dummy_compiler
+{
+    fn compile(&self, code : String) -> fn(&mut GlobalState, &mut LocalState) -> bool
+    {
+        return dummy;
+    }
+}
+
+fn dummy(one: &mut GlobalState, two: &mut LocalState) -> bool
+{
+    return true;
 }
 
 fn fitness(comm: BiChannel<FitnessMessage>) {
@@ -283,23 +308,23 @@ fn fitness_calc(fit_state: fitness_state, average_size: &mut f64, pop_count: u64
 
     cumm_fit = cumm_fit / fit_state.problem_vec.len() as f64;
 
-	//difference is a percent so 30 is 30% bigger, 100 is 100% bigger
+    //difference is a percent so 30 is 30% bigger, 100 is 100% bigger
     let difference = 100.0 * (size as f64 - *average_size) / *average_size;
 
-	//0.943989 b increased slightly from correct/perfect value for a bit of safety in rounding
+    //0.943989 b increased slightly from correct/perfect value for a bit of safety in rounding
 
     let a: f64 = 5.;
     let b: f64 = 0.0;
     let k: f64 = 0.0230259;
 
-	//a*e^(k*x)+b
-	//plug three points that you want on the curve into an equation solver.
-	//this example uses 0,1 30,2 100,1000 to get a shallow penalty till 30, afterwards it swiftly grows
+    //a*e^(k*x)+b
+    //plug three points that you want on the curve into an equation solver.
+    //this example uses 0,1 30,2 100,1000 to get a shallow penalty till 30, afterwards it swiftly grows
 
-	//0,2 30,5 100,1000
+    //0,2 30,5 100,1000
     let penalty: f64 = a * (k*difference).exp() + b;
 
-	//println!("penalty={}, size={1}, average = {2}",penalty,size,*average_size);
+    //println!("penalty={}, size={1}, average = {2}",penalty,size,*average_size);
 
     let mut final_fit = (cumm_fit*10.0) as u64 + penalty as u64 + size as u64;
 

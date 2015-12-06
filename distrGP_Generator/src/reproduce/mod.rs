@@ -10,7 +10,7 @@ use self::rand::Rng;
 
 
 //finish this
-pub fn reproduce(selector: &Box<Selector>, pop: Vec<GlobalState>, crossmut: &Vec<Box<GeneticOperator>>, operators: &mut OperatorMap) -> Vec<GlobalState>
+pub fn reproduce(selector: &Selector, pop: Vec<GlobalState>, crossmut: &Vec<&GeneticOperator>, operators: &mut OperatorMap) -> Vec<GlobalState>
 {
 
 
@@ -52,7 +52,7 @@ pub fn reproduce(selector: &Box<Selector>, pop: Vec<GlobalState>, crossmut: &Vec
 						break;
 					}
 				}
-				
+
 				break;
 			}
 		}
@@ -65,9 +65,7 @@ pub fn reproduce(selector: &Box<Selector>, pop: Vec<GlobalState>, crossmut: &Vec
 	}
 
 
-	
-	
+
+
 	newpop
 }
-
-

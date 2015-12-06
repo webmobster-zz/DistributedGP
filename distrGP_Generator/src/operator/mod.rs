@@ -8,7 +8,7 @@ use std::str::FromStr;
 pub mod operator_compiler;
 
 #[derive(Clone,Debug,Copy,Eq,PartialEq,Hash)]
-pub struct UUID {x: [u64;2]}
+pub struct UUID {pub x: [u64;2]}
 impl FromStr for UUID {
 	type Err = ();
 
@@ -19,7 +19,7 @@ impl FromStr for UUID {
                 let part1 = split.next().unwrap();
 		let part2 = split.next().unwrap();
 		Ok(UUID{x:[part1.parse::<u64>().unwrap(),part2.parse::<u64>().unwrap()]})
-		
+
             }
 }
 
@@ -33,24 +33,22 @@ pub enum SpecialOperator
 
 }
 
-//#[derive(Clone,Debug)]
-pub struct Operator
+//Rational behind this is that it may be in the future compiled operators are stored in
+//a database rather than in memory
+pub struct MinifiedOperator
 {
 	op: fn(&mut GlobalState, &mut LocalState) -> bool,
-	parts: Option<[u64;2]>,
 	sucessors: u8,
 	cost: u64,
 	special: SpecialOperator
-
-
 }
 
-impl Operator
+impl MinifiedOperator
 {
 
-	pub fn new(op:  fn(&mut GlobalState, &mut LocalState) -> bool, parts:Option<[u64;2]>, sucessors: u8, cost: u64, special: SpecialOperator) -> Operator
+	pub fn new(op:  fn(&mut GlobalState, &mut LocalState) -> bool, sucessors: u8, cost: u64, special: SpecialOperator) -> MinifiedOperator
 	{
-		Operator{ op: op, parts: parts, sucessors: sucessors, cost: cost, special: special}
+		MinifiedOperator{ op: op, sucessors: sucessors, cost: cost, special: special}
 
 	}
 	pub fn get_sucessors(&self) -> u8
@@ -78,19 +76,18 @@ impl Operator
 
 }
 
-impl Clone for Operator
+impl Clone for MinifiedOperator
 {
 
-	fn clone(&self) -> Operator
+	fn clone(&self) -> MinifiedOperator
 	{
-		Operator{op: self.op, parts: self.parts.clone(),sucessors: self.sucessors, cost: self.cost, special: self.special }
+		MinifiedOperator{op: self.op,sucessors: self.sucessors, cost: self.cost, special: self.special }
 
 	}
 
 }
 
-//#[derive(Debug,Clone)]
-pub type OperatorMap = HashMap<UUID,Operator>;
+pub type OperatorMap = HashMap<UUID,MinifiedOperator>;
 
 pub trait RandomKey
 {
@@ -153,12 +150,3 @@ impl RandomKey for OperatorMap
 
 
 }
-
-
-
-
-
-
-
-
-
