@@ -1,6 +1,6 @@
 [package]
 
-name = "distrgp_testimpl"
+name = "distrgp_rustcompiler"
 version = "0.0.1"
 authors = ["Edward Clarke <webmobster@gmail.com>"]
 description = "Experimental GP project"
@@ -12,27 +12,17 @@ keywords = ["GP", "Genetic Programming", "Machine Learning", "ML"]
 license = "Private for now"
 
 [dependencies]
-rand = "*"
-csv = "*"
-dot = "*"
-env_logger = "*"
-log= "*"
+log = "*"
+shared_library = "0.1.2"
+
 
 [dependencies.distrgp_generator]
-path = "./distrGP_Generator"
+path = "../distrGP_Generator"
 
-[dependencies.distrgp_rustcompiler]
-path = "./distrGP_RustCompiler"
+[lib]
+name = "distrgp_rustcompiler"
 
 
-[dependencies.distrgp_providedoperators]
-path = "./distrGP_ProvidedOperators"
-
-[dependencies.distrgp_evaluator]
-path = "./distrGP_Evaluator"
-
-[dependencies.distrgp_util]
-path = "./distrGP_Util"
 
 # The development profile, used for `cargo build`
 [profile.dev]

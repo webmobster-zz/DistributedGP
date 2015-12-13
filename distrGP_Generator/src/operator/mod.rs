@@ -4,6 +4,7 @@ use super::GlobalState;
 use super::LocalState;
 use rand::Rng;
 use std::str::FromStr;
+use std::fmt;
 
 pub mod operator_compiler;
 
@@ -23,13 +24,19 @@ impl FromStr for UUID {
             }
 }
 
+impl fmt::Display for UUID {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}_{}", self.x[0], self.x[1])
+    }
+}
+
 
 
 #[derive(Clone,Debug,Copy)]
 pub enum SpecialOperator
 {
 	None,
-	NewThread,
+	NewThread
 
 }
 

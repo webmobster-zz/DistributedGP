@@ -72,7 +72,7 @@ pub fn init(mut generator: Generator,
 
 
     //TODO: thread number variable
-    let pool = Arc::new(Mutex::new(ThreadPool::new(4)));
+    let pool = Arc::new(Mutex::new(ThreadPool::new(2)));
 
 
 

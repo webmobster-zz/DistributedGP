@@ -40,7 +40,9 @@ pub struct CompiledOperator
 
 pub trait Compiler
 {
-	fn compile(&self, code : String) -> fn(&mut GlobalState, &mut LocalState) -> bool;
+	fn compile(&self, ordered_code : Vec<String>, uuid: UUID) -> fn(&mut GlobalState, &mut LocalState) -> bool;
+
+	fn drop(&self, uuid: UUID);
 }
 
 pub fn load_base_operators(path: String, compiler: &Compiler)-> (Vec<CompiledOperator>,Vec<(UUID,MinifiedOperator)>)
@@ -62,14 +64,15 @@ pub fn load_base_operators(path: String, compiler: &Compiler)-> (Vec<CompiledOpe
 		let mut file = File::open(path).unwrap();
 		let mut code = String::new();
 		assert!(file.read_to_string(&mut code).is_ok());
+		let uuid = parse_uuid(operator.uuid);
 		let compiled = CompiledOperator{
-			function: compiler.compile(	code.clone()),
+			function: compiler.compile(	vec![code.clone()],uuid),
 			code: Some(code),
 			description: Some(operator.description),
 			parts: None,
 			sucessors: operator.sucessors,
 			cost: operator.cost,
-			uuid: parse_uuid(operator.uuid),
+			uuid: uuid,
 			special: parse_special(operator.special)
 		};
 		let minified = MinifiedOperator{

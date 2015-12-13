@@ -107,9 +107,13 @@ struct dummy_compiler;
 
 impl Compiler for dummy_compiler
 {
-    fn compile(&self, code : String) -> fn(&mut GlobalState, &mut LocalState) -> bool
+    fn compile(&self, code : Vec<String>,_:distrgp_generator::UUID) -> fn(&mut GlobalState, &mut LocalState) -> bool
     {
         return dummy;
+    }
+    fn drop(&self, _:distrgp_generator::UUID)
+    {
+
     }
 }
 
