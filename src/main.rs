@@ -12,6 +12,7 @@ extern crate distrgp_evaluator;
 extern crate distrgp_providedoperators;
 extern crate distrgp_generator;
 extern crate distrgp_util;
+extern crate distrgp_rustcompiler;
 extern crate env_logger;
 #[macro_use]
 extern crate log;
@@ -53,11 +54,11 @@ fn main() {
     env_logger::init().unwrap();
 
     info!("init");
-    //Basic commandline arguments, expand later
 
-
-    //read problem description file
-
+    let compiled_path = "C:\\Users\\Ed\\genetic\\scratchpad\\compiled\\".to_string();
+    let generated_path = "C:\\Users\\Ed\\genetic\\scratchpad\\generated\\".to_string();
+    let library_path = "C:\\Users\\Ed\\genetic\\DistributedGP\\target\\debug\\deps".to_string();
+    let rustc_path = "rustc".to_string();
 
 
     let selector = ::distrgp_providedoperators::selectors::Tournament::new(2);
@@ -73,7 +74,7 @@ fn main() {
     let clean = Clean::new(0.05);
     let insert_node = InsertNode::new(0.3);
     let grow =  StandardGrow::new(1.0, 200);
-    let dummy_thing = dummy_compiler;
+    let compiler = distrgp_rustcompiler::RustCompiler::new(compiled_path,generated_path,rustc_path,library_path);
 
 
     thread::spawn(move || {
@@ -90,7 +91,7 @@ fn main() {
                                                             ),
                                                             &grow,
                                                            1000000,
-                                                            &dummy_thing);
+                                                            &compiler);
                            distrgp_evaluator::init(generator, 12, fit_end_two, util_end_two);
                        });
     thread::spawn(move || {
